@@ -1,0 +1,14 @@
+# @package _global_
+general:
+    name : 'qm9h'
+    gpus : 1
+    wandb: 'online'
+train:
+    n_epochs: 2000
+    batch_size: 512
+    save_model: True
+model:
+    n_layers: 7
+    lambda_train: [5, 0]
+dataset:
+    remove_h: False

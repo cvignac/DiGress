@@ -127,3 +127,26 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+
+.DS_Store
+.idea/
+__pycache__/
+dgd/configs/__pycache__/
+data/
+egnn/__pycache__/
+equivariant_diffusion/__pycache__/
+outputs/
+archives/qm9/__pycache__/
+archives/qm9/data_utils/__pycache__/
+archives/qm9/data_utils/prepare/__pycache__/
+archives/qm9/property_prediction/__pycache__/
+archives/*
+.env
+results/*.ckpt
+results/qm9_molecules_h
+results/qm9_molecules_noh
+dgd/analysis/orca/orca
+results/*
+ggg_data/
+ggg_utils/

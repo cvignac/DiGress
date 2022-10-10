@@ -1,0 +1,16 @@
+# @package _global_
+general:
+    name : 'qm9_no_h'
+    gpus : 1
+    wandb: 'online'
+    test_only: null
+    evaluate_all_checkpoints: True
+train:
+    n_epochs: 1000
+    batch_size: 1024
+    save_model: True
+model:
+    n_layers: 9
+    lambda_train: [5, 0]
+dataset:
+    remove_h: True

@@ -1,0 +1,4 @@
+name: 'guacamol'
+datadir: 'data/guacamol/guacamol_pyg/'       # Relative to the guacamol_dataset.py file
+remove_h: null
+filtered: True                      # Use the filtered version or the raw guacamol file

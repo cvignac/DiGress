@@ -1,0 +1,42 @@
+# @package _global_
+general:
+    name : 'custom_sched'
+    gpus : 1
+    wandb: 'online'
+    remove_h: True
+    resume: null
+    test_only: null
+    check_val_every_n_epochs: 2
+    val_check_interval: null
+    sample_every_val: 2
+    samples_to_generate: 80
+    samples_to_save: 20
+    chains_to_save: 5
+    log_every_steps: 50
+
+    final_model_samples_to_generate: 25000
+    final_model_samples_to_save: 100
+    final_model_chains_to_save: 50
+
+train:
+    n_epochs: 1000
+    batch_size: 256
+    optimizer: adan # adamw,nadamw,nadam,adan => nadamw for large batches, see http://arxiv.org/abs/2102.06356 for the use of nesterov momentum with large batches
+    lr: 6e-4 # attempt a rough sqrt scaling, i.e. lr(BS)=lr(64)*sqrt(BS/64) \approx 8e-3, see https://arxiv.org/abs/2006.09092 for inspiration
+    save_model: True
+model:
+    n_layers: 16
+    lambda_train: [2, 0]
+    type: 'discrete'
+    transition: 'marginal'                          # uniform or marginal
+    model: 'graph_tf'
+    diffusion_steps: 1000
+    diffusion_noise_schedule: 'cosine'              # 'cosine', 'custom'
+    extra_features: 'all'        # 'all', 'cycles', 'eigenvalues' or null
+
+  # Do not set hidden_mlp_E, dim_ffE too high, computing large tensors on the edges is costly
+  # At the moment (03/08), y contains quite little information
+    hidden_mlp_dims: { 'X': 256, 'E': 128, 'y': 256}
+
+  # The dimensions should satisfy dx % n_head == 0
+    hidden_dims: { 'dx': 256, 'de': 64, 'dy': 128, 'n_head': 8, 'dim_ffX': 256, 'dim_ffE': 64, 'dim_ffy': 256}

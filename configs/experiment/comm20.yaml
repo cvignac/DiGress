@@ -1,0 +1,26 @@
+# @package _global_
+general:
+    name : 'comm20'
+    gpus : 1
+    wandb: 'online'
+    resume: null            # If resume, path to ckpt file from outputs directory in main directory
+    test_only: null
+    check_val_every_n_epochs: 1000
+    sample_every_val: 10
+    samples_to_generate: 20
+    samples_to_save: 20
+    chains_to_save: 1
+    log_every_steps: 50
+    number_chain_steps: 50        # Number of frames in each gif
+    final_model_samples_to_generate: 20
+    final_model_samples_to_save:
+    final_model_chains_to_save: 10
+
+train:
+    n_epochs: 1000000
+    batch_size: 256
+    save_model: True
+model:
+    n_layers: 8
+    lambda_train: [5, 0]
+    extra_features: 'all'

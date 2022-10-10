@@ -1,0 +1,41 @@
+# @package _global_
+general:
+    name : 'new_guacamol'
+    gpus : 1
+    wandb: 'online'
+    resume: null
+    test_only: null
+    check_val_every_n_epochs: 2
+    val_check_interval: null
+    sample_every_val: 2
+    samples_to_generate: 500
+    samples_to_save: 20
+    chains_to_save: 5
+    log_every_steps: 50
+
+    final_model_samples_to_generate: 18000
+    final_model_samples_to_save: 100
+    final_model_chains_to_save: 50
+
+train:
+    optimizer: adam
+    n_epochs: 1000
+    batch_size: 256
+    save_model: True
+    lr: 2e-4
+model:
+    n_layers: 12
+    lambda_train: [5, 0]
+    type: 'discrete'
+    transition: 'marginal'                          # uniform or marginal
+    model: 'graph_tf'
+    diffusion_steps: 500
+    diffusion_noise_schedule: 'cosine'              # 'cosine', 'polynomial_2'
+    extra_features: 'all'                           # 'all', 'cycles', 'eigenvalues' or null
+
+  # Do not set hidden_mlp_E, dim_ffE too high, computing large tensors on the edges is costly
+  # At the moment (03/08), y contains quite little information
+    hidden_mlp_dims: {'X': 256, 'E': 128, 'y': 256}
+
+  # The dimensions should satisfy dx % n_head == 0
+    hidden_dims: {'dx': 256, 'de': 64, 'dy': 128, 'n_head': 8, 'dim_ffX': 256, 'dim_ffE': 128, 'dim_ffy': 256}

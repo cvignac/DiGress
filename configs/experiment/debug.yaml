@@ -1,0 +1,22 @@
+# @package _global_
+general:
+    name : 'debug'
+    gpus : 0
+    wandb: 'disabled'
+    sample_every_val: 1
+    samples_to_generate: 4
+    samples_to_save: 2
+    chains_to_save: 1
+    remove_h: True
+    number_chain_steps: 10        # Number of frames in each gif
+train:
+    batch_size: 4
+    save_model: False
+model:
+    n_layers: 2
+    diffusion_noise_schedule: 'cosine'
+    diffusion_steps: 110
+    hidden_mlp_dims: { 'X': 17, 'E': 18, 'y': 19 }
+    hidden_dims: {'dx': 20, 'de': 21, 'dy': 22, 'n_head': 5, 'dim_ffX': 23, 'dim_ffE': 24, 'dim_ffy': 25}
+    extra_features: 'all'
+

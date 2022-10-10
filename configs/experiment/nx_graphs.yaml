@@ -1,0 +1,18 @@
+# @package _global_
+
+general:
+  # General settings for ggg benchmarks
+  check_val_every_n_epochs: 5
+  sample_every_val: 2
+  samples_to_generate: 16       # since these are benchmarking graphs, we can use a smaller number
+  samples_to_save: 16
+  chains_to_save: 1
+  log_every_steps: 50
+  number_chain_steps: 50        # Number of frames in each gif
+
+  final_model_samples_to_generate: 10000
+  final_model_samples_to_save: 100
+  final_model_chains_to_save: 50
+  cpus_per_gpu: 4
+  force_ray: false
+  val_bs_multiplier: 1.0
