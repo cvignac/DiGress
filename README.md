@@ -7,6 +7,8 @@ error due to a bad interaction between `pytorch_lightning` and `torch_geometric`
 Warning 2: The code has been updated since experiments were run for the paper. If you don't manage to reproduce the 
 paper results, please write to us so that we can investigate the issue.
 
+Warning 3: the conditional generation experiments were implemented with an legacy version of the code. They are not yet available in the public version.
+
 ## Environment installation
   - Download anaconda/miniconda if needed
   - Create a rdkit environment that directly contains rdkit: `conda create -c conda-forge -n my-rdkit-env rdkit`
