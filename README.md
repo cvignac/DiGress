@@ -16,7 +16,7 @@ Warning 3: the conditional generation experiments were implemented with an legac
   - Install pytorch 1.10 or 1.11 (https://pytorch.org/)
   - Install pytorch-geometric. Your version should match the pytorch version that is installed (https://pytorch-geometric.readthedocs.io/en/latest/notes/installation.html)
   - Install other packages using the requirement file: `pip install -r requirements.txt`
-  - Install mini-moses: 1. clone https://github.com/molecularsets/moses 2. Enter this directory 3. Install the package with `pip install -e .`
+  - Install mini-moses: `pip install git+https://github.com/igor-krawczuk/mini-moses@main`
 
 ## Download the data
 
