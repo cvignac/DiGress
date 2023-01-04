@@ -19,7 +19,6 @@ torch-geometric
 ipdb
 pdbpp
 networkx==2.8.7
-#-e ggg_data
 overrides
 pygsp
 pyemd

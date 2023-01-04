@@ -1,10 +1,10 @@
 # Denoising diffusion models for graph generation
 
 
-Warning 1: The code has been updated after experiments were run for the paper. If you don't manage to reproduce the 
+Warning: The code has been updated after experiments were run for the paper. If you don't manage to reproduce the 
 paper results, please write to us so that we can investigate the issue.
 
-For the conditional generation experiments, check the branch `conditional_generation`.
+For the conditional generation experiments, check the branch `conditional_generation`. It is based on a legacy version of this code.
 
 ## Environment installation
   - Download anaconda/miniconda if needed
@@ -13,7 +13,7 @@ For the conditional generation experiments, check the branch `conditional_genera
   - Install pytorch 1.10 or 1.11 (https://pytorch.org/)
   - Install pytorch-geometric. Your version should match the pytorch version that is installed (https://pytorch-geometric.readthedocs.io/en/latest/notes/installation.html)
   - Install other packages using the requirement file: `pip install -r requirements.txt`
-  - Install 
+  - Install mini-moses: `pip install git+https://github.com/igor-krawczuk/mini-moses@main`
 
 ## Download the data
 
