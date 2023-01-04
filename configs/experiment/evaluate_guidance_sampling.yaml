@@ -1,0 +1,8 @@
+# @package _global_
+general:
+    name : 'evaluate_guidance_sampling'
+    gpus : 1
+    wandb: 'disabled'
+    remove_h: True
+cond_sample_path: 'outputs/2022-08-30/16-03-20/cond_smiles.pkl'
+

@@ -8,14 +8,6 @@ wandb
 hydra-core
 pytorch_lightning==1.7.2
 torchmetrics
-torch==1.11
---extra-index-url https://download.pytorch.org/whl/cu113
-torch-scatter
-torch-sparse
-torch-cluster
-torch-spline-conv
-torch-geometric
--f https://data.pyg.org/whl/torch-1.11.0+cu113.html
 ipdb
 pdbpp
 networkx==2.8.7

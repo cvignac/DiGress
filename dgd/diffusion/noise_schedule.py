@@ -64,7 +64,7 @@ class PredefinedNoiseScheduleDiscrete(torch.nn.Module):
         log_alpha = torch.log(self.alphas)
         log_alpha_bar = torch.cumsum(log_alpha, dim=0)
         self.alphas_bar = torch.exp(log_alpha_bar)
-        print(f"[Noise schedule: {noise_schedule}] alpha_bar:", self.alphas_bar)
+        # print(f"[Noise schedule: {noise_schedule}] alpha_bar:", self.alphas_bar)
 
     def forward(self, t_normalized=None, t_int=None):
         assert int(t_normalized is None) + int(t_int is None) == 1

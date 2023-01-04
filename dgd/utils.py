@@ -12,14 +12,14 @@ import torch
 
 def create_folders(args):
     try:
-        # os.makedirs('checkpoints')
+        os.makedirs('checkpoints')
         os.makedirs('graphs')
         os.makedirs('chains')
     except OSError:
         pass
 
     try:
-        # os.makedirs('checkpoints/' + args.general.name)
+        os.makedirs('checkpoints/' + args.general.name)
         os.makedirs('graphs/' + args.general.name)
         os.makedirs('chains/' + args.general.name)
     except OSError:

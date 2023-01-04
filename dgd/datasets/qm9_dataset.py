@@ -19,6 +19,31 @@ from dgd.analysis.rdkit_functions import  mol2smiles, build_molecule_with_partia
 from dgd.analysis.rdkit_functions import compute_molecular_metrics
 
 
+HAR2EV = 27.211386246
+KCALMOL2EV = 0.04336414
+
+conversion = torch.tensor([1., 1., HAR2EV, HAR2EV, HAR2EV, 1., HAR2EV, HAR2EV, HAR2EV, HAR2EV, HAR2EV,
+                           1., KCALMOL2EV, KCALMOL2EV, KCALMOL2EV, KCALMOL2EV, 1., 1., 1.])
+
+
+class RemoveYTransform:
+    def __call__(self, data):
+        data.y = torch.zeros((1, 0), dtype=torch.float)
+        return data
+
+
+class SelectMuTransform:
+    def __call__(self, data):
+        data.y = data.y[..., :1]
+        return data
+
+
+class SelectHOMOTransform:
+    def __call__(self, data):
+        data.y = data.y[..., 1:]
+        return data
+
+
 def files_exist(files) -> bool:
     # NOTE: We return `False` in case `files` is empty, leading to a
     # re-processing of files on every instantiation.
@@ -38,8 +63,15 @@ class QM9Dataset(InMemoryDataset):
     raw_url2 = 'https://ndownloader.figshare.com/files/3195404'
     processed_url = 'https://data.pyg.org/datasets/qm9_v3.zip'
 
-    def __init__(self, stage, root, remove_h: bool, transform=None, pre_transform=None, pre_filter=None):
+    def __init__(self, stage, root, remove_h: bool, target_prop=None,
+                 transform=None, pre_transform=None, pre_filter=None):
+        """ stage: train, val, test
+            root: data directory
+            remove_h: remove hydrogens
+            target_prop: property to predict (for guidance only).
+        """
         self.stage = stage
+        self.target_prop = target_prop
         if self.stage == 'train':
             self.file_idx = 0
         elif self.stage == 'val':
@@ -115,6 +147,9 @@ class QM9Dataset(InMemoryDataset):
 
         target_df = pd.read_csv(self.split_paths[self.file_idx], index_col=0)
         target_df.drop(columns=['mol_id'], inplace=True)
+        target = torch.tensor(target_df.values, dtype=torch.float)
+        target = torch.cat([target[:, 3:], target[:, :3]], dim=-1)
+        target = target * conversion.view(1, -1)
 
         with open(self.raw_paths[-1], 'r') as f:
             skip = [int(x.split()[0]) - 1 for x in f.read().split('\n')[9:-2]]
@@ -148,7 +183,9 @@ class QM9Dataset(InMemoryDataset):
             edge_attr = edge_attr[perm]
 
             x = F.one_hot(torch.tensor(type_idx), num_classes=len(types)).float()
-            y = torch.zeros((1, 0), dtype=torch.float)
+
+            y = target[target_df.index.get_loc(i)].unsqueeze(0)
+            y = torch.hstack((y[..., :1], y[..., 2:3]))         # mu, homo
 
             if self.remove_h:
                 type_idx = torch.Tensor(type_idx).long()
@@ -172,17 +209,31 @@ class QM9Dataset(InMemoryDataset):
 
 
 class QM9DataModule(MolecularDataModule):
-    def __init__(self, cfg):
+    def __init__(self, cfg, regressor: bool = False):
         self.datadir = cfg.dataset.datadir
+        self.regressor = regressor
         super().__init__(cfg)
         self.remove_h = cfg.dataset.remove_h
 
     def prepare_data(self) -> None:
+        target = self.cfg.general.guidance_target
+        if self.regressor and target == 'mu':
+            transform = SelectMuTransform()
+        elif self.regressor and target == 'homo':
+            transform = SelectHOMOTransform()
+        elif self.regressor and target == 'both':
+            transform = None
+        else:
+            transform = RemoveYTransform()
+
         base_path = pathlib.Path(os.path.realpath(__file__)).parents[2]
         root_path = os.path.join(base_path, self.datadir)
-        datasets = {'train': QM9Dataset(stage='train', root=root_path, remove_h=self.cfg.dataset.remove_h),
-                    'val': QM9Dataset(stage='val', root=root_path, remove_h=self.cfg.dataset.remove_h),
-                    'test': QM9Dataset(stage='test', root=root_path, remove_h=self.cfg.dataset.remove_h)}
+        datasets = {'train': QM9Dataset(stage='train', root=root_path, remove_h=self.cfg.dataset.remove_h,
+                                        target_prop=target, transform=RemoveYTransform()),
+                    'val': QM9Dataset(stage='val', root=root_path, remove_h=self.cfg.dataset.remove_h,
+                                      target_prop=target, transform=RemoveYTransform()),
+                    'test': QM9Dataset(stage='test', root=root_path, remove_h=self.cfg.dataset.remove_h,
+                                       target_prop=target, transform=transform)}
         super().prepare_data(datasets)
 
 
@@ -321,7 +372,7 @@ def compute_qm9_smiles(atom_decoder, train_dataloader, remove_h):
                 mols_smiles.append(smile)
                 mol_frags = Chem.rdmolops.GetMolFrags(mol, asMols=True, sanitizeFrags=True)
                 if len(mol_frags) > 1:
-                    print("Disconnected molecule", mol, mol_frags)
+                    print(f"Disconnected molecule {len(mol_frags)} fragments")
                     disconnected += 1
             else:
                 print("Invalid molecule obtained.")

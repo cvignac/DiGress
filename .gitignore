@@ -150,3 +150,5 @@ dgd/analysis/orca/orca
 results/*
 ggg_data/
 ggg_utils/
+dgd/timer.dat
+saved_models/

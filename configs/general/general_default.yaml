@@ -4,6 +4,7 @@ name: 'graph-tf-model'      # Warning: 'debug' and 'test' are reserved name that
 wandb: 'online'             # online | offline | disabled
 gpus: 1                     # Multi-gpu is not implemented on this branch
 
+guidance_target: null       # null is the default when not using guidance. Otherwise, use 'homo', 'mu' or 'both'
 
 resume: null            # If resume, path to ckpt file from outputs directory in main directory
 test_only: null         # Use absolute path

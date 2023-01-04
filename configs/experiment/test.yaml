@@ -1,15 +1,21 @@
 # @package _global_
 general:
-    name : 'test'
-    gpus : 1
+    name : 'try_checkpoint'
+    gpus : 0
     wandb: 'disabled'
     sample_every_val: 1
     samples_to_generate: 10
     samples_to_save: 5
     chains_to_save: 1
     test_only: False
+    check_val_every_n_epochs: 1
+
 train:
     ema_decay : 0
-    batch_size: 3
-    save_model: False
-    n_epochs : 3
+    batch_size: 512
+    save_model: True
+    n_epochs : 1
+
+model:
+    n_layers: 2
+    extra_features: null

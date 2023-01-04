@@ -82,8 +82,8 @@ class DiscreteDenoisingDiffusion(pl.LightningModule):
             e_limit = torch.ones(self.Edim_output) / self.Edim_output
             y_limit = torch.ones(self.ydim_output) / self.ydim_output
             self.limit_dist = utils.PlaceHolder(X=x_limit, E=e_limit, y=y_limit)
-        elif cfg.model.transition == 'marginal':
 
+        elif cfg.model.transition == 'marginal':
             node_types = self.dataset_info.node_types.float()
             x_marginals = node_types / torch.sum(node_types)
 
@@ -513,7 +513,7 @@ class DiscreteDenoisingDiffusion(pl.LightningModule):
 
             # Sample z_s
             sampled_s, discrete_sampled_s, predicted_graph = self.sample_p_zs_given_zt(t_norm, X, E, y, node_mask,
-                                                                                       last_step=s_int==100)
+                                                                                       last_step=s_int == 100)
             X, E, y = sampled_s.X, sampled_s.E, sampled_s.y
 
             # Save the first keep_chain graphs

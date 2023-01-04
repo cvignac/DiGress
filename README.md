@@ -1,41 +1,33 @@
 # Denoising diffusion models for graph generation
 
 
-Warning: The code has been updated after experiments were run for the paper. If you don't manage to reproduce the 
-paper results, please write to us so that we can investigate the issue.
+Warning: The paper experiments were run with an old version of the code. We have incorporated the changes into the public
+version to create this branch, but we did not test it thoroughly yet. Please tell us if you find any bugs.
 
-For the conditional generation experiments, check the branch `conditional_generation`. It is based on a legacy version of this code.
+
+This branch contains the code for the guidance model
+ - We advise creating a new environment for the guidance model. Follow previous instructions for the installation 
+   (you can skip `graph-tool` and `mini-moses`, which are not needed).
+ - install Psi4
+ - Delete the QM9 dataset -- it needs to be processed again
+ - Train a regressor using `python3 guidance/train_qm9_regressor.py +experiment=regressor_model.yaml`
+ - Train an unconditional model without extra features, for example: `python3 main.py +experiment=test`
+ - In `guidance_homo.yaml` (for example), set the paths of the two checkpoints obtained above
+ - Evaluate the guidance model: `python3 guidance/main_guidance.py +experiment=guidance_homo`
+
+
+
 
 ## Environment installation
   - Download anaconda/miniconda if needed
-  - Create a rdkit environment that directly contains rdkit: `conda create -c conda-forge -n my-rdkit-env rdkit`
-  - Install graph-tool (https://graph-tool.skewed.de/)
+  - Create a rdkit environment that directly contains rdkit: `conda create -c conda-forge -n my-rdkit-env rdkit python=3.9`
   - Install pytorch 1.10 or 1.11 (https://pytorch.org/)
   - Install pytorch-geometric. Your version should match the pytorch version that is installed (https://pytorch-geometric.readthedocs.io/en/latest/notes/installation.html)
   - Install other packages using the requirement file: `pip install -r requirements.txt`
-  - Install mini-moses: `pip install git+https://github.com/igor-krawczuk/mini-moses@main`
-
-## Download the data
-
-  - QM9 and Guacamol should download by themselves when you run the code.
-  - For the community, SBM and planar datasets, data can be found at https://github.com/KarolisMart/SPECTRE/tree/main/data
-  - Moses dataset can be found at https://github.com/molecularsets/moses/tree/master/data
-  
 
 
 
 
-## Run the code
-  
-  - All code is currently launched through `python3 main.py`. Check hydra documentation (https://hydra.cc/) for overriding default parameters.
-  - To run the debugging code: `python3 main.py +experiment=debug.yaml`. We advise to try to run the debug mode first
-    before launching full experiments.
-  - To run a code on only a few batches: `python3 main.py general.name=test`.
-  - To run the continuous model: `python3 main.py model=continuous`
-  - To run the discrete model: `python3 main.py`
-  - You can specify the dataset with `python3 main.py dataset=guacamol`. Look at `configs/dataset` for the list
-of datasets that are currently available
-    
     
 ## Cite the paper
 

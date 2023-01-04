@@ -1,0 +1,27 @@
+# @package _global_
+general:
+    name : 'guidance_homo'
+    gpus : 1
+    wandb: 'disabled'
+    sample_every_val: 1
+    samples_to_generate: 10
+    final_model_samples_to_generate: 10
+    final_model_chains_to_save: 0
+    samples_to_save: 2
+    chains_to_save: 0
+    number_chain_steps: 10        # Number of frames in each gif
+    # THIS SHOULD BE THE SAME AS THE REGRESSION MODEL THAT IS LOADED
+    guidance_target: 'homo'            # 'mu', 'homo', 'both', 'no-target'
+    trained_regressor_path: ~/src/public/DiGress/saved_models/regressor_homo_debug.ckpt
+    test_only: /Users/clementvignac/src/public/DiGress/saved_models/unconditional_debug.ckpt
+train:
+    batch_size: 1               # Needs to be 1 for testing
+    save_model: False
+model:
+    n_layers: 2
+    extra_features: null
+guidance:
+    lambda_guidance: 300.0
+    n_experiments: 2          # Change to 100
+dataset:
+    remove_h: True

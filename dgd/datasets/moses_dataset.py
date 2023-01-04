@@ -1,7 +1,10 @@
 from rdkit import Chem, RDLogger
 from rdkit.Chem.rdchem import BondType as BT
-import mini_moses as moses
-
+try:
+    import mini_moses as moses
+except ModuleNotFoundError:
+    print("Mini moses not found, Moses dataset cannot be used")
+    pass
 import os
 import os.path as osp
 import pathlib

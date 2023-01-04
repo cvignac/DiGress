@@ -39,6 +39,7 @@ def get_resume(cfg, model_kwargs):
     saved_cfg = cfg.copy()
     name = cfg.general.name + '_resume'
     resume = cfg.general.test_only
+    chains_to_save = cfg.general.chains_to_save
     if cfg.model.type == 'discrete':
         model = DiscreteDenoisingDiffusion.load_from_checkpoint(resume, **model_kwargs)
     else:
@@ -46,6 +47,7 @@ def get_resume(cfg, model_kwargs):
     cfg = model.cfg
     cfg.general.test_only = resume
     cfg.general.name = name
+    cfg.general.chains_to_save = chains_to_save
     cfg = utils.update_config_with_new_keys(cfg, saved_cfg)
     return cfg, model
 
@@ -112,6 +114,8 @@ def main(cfg: DictConfig):
 
         dataset_infos.compute_input_output_dims(datamodule=datamodule, extra_features=extra_features,
                                                 domain_features=domain_features)
+        print(dataset_infos.output_dims)
+        assert False
 
         model_kwargs = {'dataset_infos': dataset_infos, 'train_metrics': train_metrics,
                         'sampling_metrics': sampling_metrics, 'visualization_tools': visualization_tools,
@@ -188,7 +192,9 @@ def main(cfg: DictConfig):
                                               save_top_k=5,
                                               mode='min',
                                               every_n_epochs=1)
+        last_ckpt_save = ModelCheckpoint(dirpath=f"checkpoints/{cfg.general.name}", filename='last', every_n_epochs=1)
         callbacks.append(checkpoint_callback)
+        callbacks.append(last_ckpt_save)
 
     if cfg.train.ema_decay > 0:
         ema_callback = utils.EMA(decay=cfg.train.ema_decay)

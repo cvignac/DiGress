@@ -122,7 +122,8 @@ class AbstractDatasetInfos:
 
         self.input_dims = {'X': example_batch['x'].size(1),
                            'E': example_batch['edge_attr'].size(1),
-                           'y': example_batch['y'].size(1) + 1}      # + 1 due to time conditioning
+                           'y': 1}      # + 1 due to time conditioning
+
         ex_extra_feat = extra_features(example_data)
         self.input_dims['X'] += ex_extra_feat.X.size(-1)
         self.input_dims['E'] += ex_extra_feat.E.size(-1)
