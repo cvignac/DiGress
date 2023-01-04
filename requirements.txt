@@ -6,7 +6,7 @@ scipy
 tqdm
 wandb
 hydra-core
-pytorch_lightning==1.7
+pytorch_lightning==1.7.2
 torchmetrics
 torch==1.11
 --extra-index-url https://download.pytorch.org/whl/cu113

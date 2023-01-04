@@ -1,11 +1,10 @@
 # Denoising diffusion models for graph generation
 
-Warning 1: when running the code, you might encounter an `AttributeError cls._old_init`. This is a non deterministic
-error due to a bad interaction between `pytorch_lightning` and `torch_geometric`. Just run the code again until it works
-(it might happen up to 5 times in a row)
 
-Warning 2: The code has been updated since experiments were run for the paper. If you don't manage to reproduce the 
+Warning 1: The code has been updated after experiments were run for the paper. If you don't manage to reproduce the 
 paper results, please write to us so that we can investigate the issue.
+
+For the conditional generation experiments, check the branch `conditional_generation`.
 
 ## Environment installation
   - Download anaconda/miniconda if needed
