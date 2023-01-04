@@ -4,7 +4,7 @@
 Warning: The code has been updated after experiments were run for the paper. If you don't manage to reproduce the 
 paper results, please write to us so that we can investigate the issue.
 
-For the conditional generation experiments, check the branch `conditional_generation`. It is based on a legacy version of this code.
+For the conditional generation experiments, check the `guidance` branch. 
 
 ## Environment installation
   - Download anaconda/miniconda if needed
