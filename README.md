@@ -2,7 +2,7 @@
 
 
 Warning: The paper experiments were run with an old version of the code. We have incorporated the changes into the public
-version to create this branch, but we did not test it thoroughly yet. Please tell us if you find any bugs.
+version to create this branch, but we have not tested thoroughly yet. Please tell us if you find any bugs.
 
 
 This branch contains the code for the guidance model
