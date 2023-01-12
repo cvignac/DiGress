@@ -1,7 +1,7 @@
 import numpy as np
 import torch
-from dgd import utils
-from dgd.diffusion import diffusion_utils
+from src import utils
+from src.diffusion import diffusion_utils
 
 
 class PredefinedNoiseSchedule(torch.nn.Module):

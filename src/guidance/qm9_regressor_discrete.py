@@ -6,12 +6,12 @@ import time
 import wandb
 from torchmetrics import MeanSquaredError, MeanAbsoluteError
 
-from dgd.models.transformer_model import GraphTransformer
-from dgd.diffusion.noise_schedule import PredefinedNoiseScheduleDiscrete, MarginalUniformTransition
-from dgd.diffusion import diffusion_utils
-from dgd.metrics.abstract_metrics import NLL, SumExceptBatchKL, SumExceptBatchMetric
-from dgd.metrics.train_metrics import TrainLossDiscrete
-import dgd.utils as utils
+from src.models.transformer_model import GraphTransformer
+from src.diffusion.noise_schedule import PredefinedNoiseScheduleDiscrete, MarginalUniformTransition
+from src.diffusion import diffusion_utils
+from src.metrics.abstract_metrics import NLL, SumExceptBatchKL, SumExceptBatchMetric
+from src.metrics.train_metrics import TrainLossDiscrete
+import src.utils as utils
 
 
 def reset_metrics(metrics):

@@ -14,15 +14,15 @@ from pytorch_lightning.utilities.warnings import PossibleUserWarning
 import warnings
 
 
-import dgd.utils as utils
-from dgd.guidance.guidance_diffusion_model_discrete import DiscreteDenoisingDiffusion
-from dgd.datasets import qm9_dataset
-from dgd.metrics.molecular_metrics import SamplingMolecularMetrics, TrainMolecularMetricsDiscrete
-from dgd.analysis.visualization import MolecularVisualization
-from dgd.diffusion.extra_features import DummyExtraFeatures, ExtraFeatures
-from dgd.diffusion.extra_features_molecular import ExtraMolecularFeatures
-from dgd.utils import update_config_with_new_keys
-from dgd.guidance.qm9_regressor_discrete import Qm9RegressorDiscrete
+import src.utils as utils
+from src.guidance.guidance_diffusion_model_discrete import DiscreteDenoisingDiffusion
+from src.datasets import qm9_dataset
+from src.metrics.molecular_metrics import SamplingMolecularMetrics, TrainMolecularMetricsDiscrete
+from src.analysis.visualization import MolecularVisualization
+from src.diffusion.extra_features import DummyExtraFeatures, ExtraFeatures
+from src.diffusion.extra_features_molecular import ExtraMolecularFeatures
+from src.utils import update_config_with_new_keys
+from src.guidance.qm9_regressor_discrete import Qm9RegressorDiscrete
 
 
 warnings.filterwarnings("ignore", category=PossibleUserWarning)

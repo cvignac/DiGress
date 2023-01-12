@@ -8,9 +8,9 @@ from torch.nn.modules.normalization import LayerNorm
 from torch.nn import functional as F
 from torch import Tensor
 
-from dgd import utils
-from dgd.diffusion import diffusion_utils
-from dgd.models.layers import Xtoy, Etoy
+from src import utils
+from src.diffusion import diffusion_utils
+from src.models.layers import Xtoy, Etoy
 
 
 class XEyTransformerLayer(nn.Module):

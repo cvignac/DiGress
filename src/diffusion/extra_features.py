@@ -1,6 +1,6 @@
 import torch
 # from torch_geometric.transforms import largest_connected_components
-from dgd import utils
+from src import utils
 
 
 class DummyExtraFeatures:

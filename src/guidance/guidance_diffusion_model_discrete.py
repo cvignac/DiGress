@@ -8,13 +8,13 @@ import torch.nn as nn
 import torch.nn.functional as F
 from omegaconf import OmegaConf, open_dict
 
-from dgd.models.transformer_model import GraphTransformer
-from dgd.diffusion.noise_schedule import DiscreteUniformTransition, PredefinedNoiseScheduleDiscrete, MarginalUniformTransition
-from dgd.diffusion import diffusion_utils
+from src.models.transformer_model import GraphTransformer
+from src.diffusion.noise_schedule import DiscreteUniformTransition, PredefinedNoiseScheduleDiscrete, MarginalUniformTransition
+from src.diffusion import diffusion_utils
 import networkx as nx
-from dgd.metrics.abstract_metrics import NLL, SumExceptBatchKL, SumExceptBatchMetric
-from dgd.metrics.train_metrics import TrainLossDiscrete
-import dgd.utils as utils
+from src.metrics.abstract_metrics import NLL, SumExceptBatchKL, SumExceptBatchMetric
+from src.metrics.train_metrics import TrainLossDiscrete
+import src.utils as utils
 
 # packages for conditional generation with guidance
 from torchmetrics import MeanSquaredError, MeanAbsoluteError
@@ -26,7 +26,7 @@ try:
     import psi4
 except ModuleNotFoundError:
     print("PSI4 not found")
-from dgd.analysis.rdkit_functions import build_molecule, mol2smiles, build_molecule_with_partial_charges
+from src.analysis.rdkit_functions import build_molecule, mol2smiles, build_molecule_with_partial_charges
 import pickle
 import pandas as pd
 
@@ -253,9 +253,10 @@ class DiscreteDenoisingDiffusion(pl.LightningModule):
             s_array = s_int * torch.ones((batch_size, 1)).type_as(y)
             t_array = s_array + 1
             t_norm = t_array / self.T
+            s_norm = s_array / self.T
 
             # Sample z_s
-            sampled_s, discrete_sampled_s = self.sample_p_zs_given_zt(t_norm, X, E, y, node_mask, input_properties)
+            sampled_s, discrete_sampled_s = self.sample_p_zs_given_zt(s_norm, t_norm, X, E, y, node_mask, input_properties)
             X, E, y = sampled_s.X, sampled_s.E, sampled_s.y
 
             # Save the first keep_chain graphs
@@ -504,11 +505,11 @@ class DiscreteDenoisingDiffusion(pl.LightningModule):
             mask_grad_e = 1 / 2 * (mask_grad_e + torch.transpose(mask_grad_e, 1, 2))
             return mask_grad_x, mask_grad_e
 
-    def sample_p_zs_given_zt(self, t, X_t, E_t, y_t, node_mask, input_properties):
+    def sample_p_zs_given_zt(self, s, t, X_t, E_t, y_t, node_mask, input_properties):
         """Samples from zs ~ p(zs | zt). Only used during sampling."""
         bs, n, dxs = X_t.shape
         beta_t = self.noise_schedule(t_normalized=t)  # (bs, 1)
-        alpha_s_bar = self.noise_schedule.get_alpha_bar(t_normalized=t)
+        alpha_s_bar = self.noise_schedule.get_alpha_bar(t_normalized=s)
         alpha_t_bar = self.noise_schedule.get_alpha_bar(t_normalized=t)
 
         # Retrieve transitions matrix

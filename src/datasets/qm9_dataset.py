@@ -13,10 +13,10 @@ import pandas as pd
 from torch_geometric.data import Data, InMemoryDataset, download_url, extract_zip
 from torch_geometric.utils import subgraph
 
-import dgd.utils as utils
-from dgd.datasets.abstract_dataset import MolecularDataModule, AbstractDatasetInfos
-from dgd.analysis.rdkit_functions import  mol2smiles, build_molecule_with_partial_charges
-from dgd.analysis.rdkit_functions import compute_molecular_metrics
+import src.utils as utils
+from src.datasets.abstract_dataset import MolecularDataModule, AbstractDatasetInfos
+from src.analysis.rdkit_functions import  mol2smiles, build_molecule_with_partial_charges
+from src.analysis.rdkit_functions import compute_molecular_metrics
 
 
 HAR2EV = 27.211386246

@@ -1,5 +1,5 @@
 import torch
-from dgd import utils
+from src import utils
 
 
 class ExtraMolecularFeatures:
