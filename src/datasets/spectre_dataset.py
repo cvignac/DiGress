@@ -4,7 +4,7 @@ import torch
 from torch.utils.data import random_split, Dataset
 import torch_geometric.utils
 
-from dgd.datasets.abstract_dataset import AbstractDataModule, AbstractDatasetInfos
+from src.datasets.abstract_dataset import AbstractDataModule, AbstractDatasetInfos
 
 
 class SpectreGraphDataset(Dataset):

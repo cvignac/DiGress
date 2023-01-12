@@ -13,10 +13,10 @@ import pandas as pd
 from torch_geometric.data import Data, InMemoryDataset, download_url, extract_zip
 from torch_geometric.utils import subgraph
 
-import dgd.utils as utils
-from dgd.datasets.abstract_dataset import MolecularDataModule, AbstractDatasetInfos
-from dgd.analysis.rdkit_functions import  mol2smiles, build_molecule_with_partial_charges
-from dgd.analysis.rdkit_functions import compute_molecular_metrics
+import src.utils as utils
+from src.datasets.abstract_dataset import MolecularDataModule, AbstractDatasetInfos
+from src.analysis.rdkit_functions import  mol2smiles, build_molecule_with_partial_charges
+from src.analysis.rdkit_functions import compute_molecular_metrics
 
 
 def files_exist(files) -> bool:
@@ -32,13 +32,33 @@ def to_list(value: Any) -> Sequence:
         return [value]
 
 
+class RemoveYTransform:
+    def __call__(self, data):
+        data.y = torch.zeros((1, 0), dtype=torch.float)
+        return data
+
+
+class SelectMuTransform:
+    def __call__(self, data):
+        data.y = data.y[..., :1]
+        return data
+
+
+class SelectHOMOTransform:
+    def __call__(self, data):
+        data.y = data.y[..., 1:]
+        return data
+
+
 class QM9Dataset(InMemoryDataset):
     raw_url = ('https://deepchemdata.s3-us-west-1.amazonaws.com/datasets/'
                'molnet_publish/qm9.zip')
     raw_url2 = 'https://ndownloader.figshare.com/files/3195404'
     processed_url = 'https://data.pyg.org/datasets/qm9_v3.zip'
 
-    def __init__(self, stage, root, remove_h: bool, transform=None, pre_transform=None, pre_filter=None):
+    def __init__(self, stage, root, remove_h: bool, target_prop=None,
+                 transform=None, pre_transform=None, pre_filter=None):
+        self.target_prop = target_prop
         self.stage = stage
         if self.stage == 'train':
             self.file_idx = 0
@@ -178,12 +198,27 @@ class QM9DataModule(MolecularDataModule):
         self.remove_h = cfg.dataset.remove_h
 
     def prepare_data(self) -> None:
+        target = getattr(self.cfg.general, 'guidance_target', None)
+        regressor = getattr(self, 'regressor', None)
+        if regressor and target == 'mu':
+            transform = SelectMuTransform()
+        elif regressor and target == 'homo':
+            transform = SelectHOMOTransform()
+        elif regressor and target == 'both':
+            transform = None
+        else:
+            transform = RemoveYTransform()
+
         base_path = pathlib.Path(os.path.realpath(__file__)).parents[2]
         root_path = os.path.join(base_path, self.datadir)
-        datasets = {'train': QM9Dataset(stage='train', root=root_path, remove_h=self.cfg.dataset.remove_h),
-                    'val': QM9Dataset(stage='val', root=root_path, remove_h=self.cfg.dataset.remove_h),
-                    'test': QM9Dataset(stage='test', root=root_path, remove_h=self.cfg.dataset.remove_h)}
+        datasets = {'train': QM9Dataset(stage='train', root=root_path, remove_h=self.cfg.dataset.remove_h,
+                                        target_prop=target, transform=RemoveYTransform()),
+                    'val': QM9Dataset(stage='val', root=root_path, remove_h=self.cfg.dataset.remove_h,
+                                      target_prop=target, transform=RemoveYTransform()),
+                    'test': QM9Dataset(stage='test', root=root_path, remove_h=self.cfg.dataset.remove_h,
+                                       target_prop=target, transform=transform)}
         super().prepare_data(datasets)
+
 
 
 class QM9infos(AbstractDatasetInfos):
@@ -249,7 +284,7 @@ class QM9infos(AbstractDatasetInfos):
             assert False
 
 
-def get_train_smiles(cfg, train_dataloader, dataset_infos, evaluate_dataset=False, ):
+def get_train_smiles(cfg, train_dataloader, dataset_infos, evaluate_dataset=False):
     if evaluate_dataset:
         assert dataset_infos is not None, "If wanting to evaluate dataset, need to pass dataset_infos"
     datadir = cfg.dataset.datadir

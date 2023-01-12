@@ -7,12 +7,12 @@ import numpy as np
 import pytorch_lightning as pl
 import wandb
 
-from dgd.models.transformer_model import GraphTransformer
+from src.models.transformer_model import GraphTransformer
 from diffusion.noise_schedule import PredefinedNoiseSchedule
-from dgd.diffusion import diffusion_utils
-from dgd.metrics.train_metrics import TrainLoss
-from dgd.metrics.abstract_metrics import SumExceptBatchMetric, SumExceptBatchMSE, NLL
-from dgd import utils
+from src.diffusion import diffusion_utils
+from src.metrics.train_metrics import TrainLoss
+from src.metrics.abstract_metrics import SumExceptBatchMetric, SumExceptBatchMSE, NLL
+from src import utils
 
 
 class LiftedDenoisingDiffusion(pl.LightningModule):
