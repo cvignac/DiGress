@@ -4,7 +4,7 @@
 Warning: The code has been updated after experiments were run for the paper. If you don't manage to reproduce the 
 paper results, please write to us so that we can investigate the issue.
 
-For the conditional generation experiments, check the branch `conditional_generation`. It is based on a legacy version of this code.
+For the conditional generation experiments, check the `guidance` branch. 
 
 ## Environment installation
   - Download anaconda/miniconda if needed
@@ -23,8 +23,6 @@ For the conditional generation experiments, check the branch `conditional_genera
   
 
 
-
-
 ## Run the code
   
   - All code is currently launched through `python3 main.py`. Check hydra documentation (https://hydra.cc/) for overriding default parameters.
@@ -36,6 +34,12 @@ For the conditional generation experiments, check the branch `conditional_genera
   - You can specify the dataset with `python3 main.py dataset=guacamol`. Look at `configs/dataset` for the list
 of datasets that are currently available
     
+## Checkpoints
+
+We uploaded pretrained models for the Planar and SBM datasets. If you need other checkpoints, please write to us.
+
+Planar: https://drive.switch.ch/index.php/s/tZCjJ6VXU2Z3FIh
+SBM: https://drive.switch.ch/index.php/s/rxWFVQX4Cu4Vq5j
     
 ## Cite the paper
 
