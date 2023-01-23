@@ -24,8 +24,8 @@ class DistributionNodes:
 
     def log_prob(self, batch_n_nodes):
         assert len(batch_n_nodes.size()) == 1
-        p = self.prob.type_as(batch_n_nodes)
+        p = self.prob.to(batch_n_nodes.device)
+
         probas = p[batch_n_nodes]
         log_p = torch.log(probas + 1e-30)
-
         return log_p
