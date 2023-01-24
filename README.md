@@ -1,4 +1,4 @@
-# Denoising diffusion models for graph generation
+# DiGress: Discrete Denoising diffusion models for graph generation (ICLR 2023)
 
 
 Warning: The code has been updated after experiments were run for the paper. If you don't manage to reproduce the 
@@ -8,12 +8,14 @@ For the conditional generation experiments, check the `guidance` branch.
 
 ## Environment installation
   - Download anaconda/miniconda if needed
-  - Create a rdkit environment that directly contains rdkit: `conda create -c conda-forge -n my-rdkit-env rdkit`
-  - Install graph-tool (https://graph-tool.skewed.de/)
+  - Create a rdkit environment that directly contains rdkit: `conda create -c conda-forge -n digress rdkit python=3.9`
+  - Install graph-tool (https://graph-tool.skewed.de/): `conda install -c conda-forge graph-tool`
+  - Install the nvcc drivers for your cuda version. For example, `conda install -c "nvidia/label/cuda-11.3.1" cuda-nvcc`
   - Install pytorch 1.10 or 1.11 (https://pytorch.org/)
   - Install pytorch-geometric. Your version should match the pytorch version that is installed (https://pytorch-geometric.readthedocs.io/en/latest/notes/installation.html)
   - Install other packages using the requirement file: `pip install -r requirements.txt`
-  - Install mini-moses: `pip install git+https://github.com/igor-krawczuk/mini-moses@main`
+  - Install mini-moses: `pip install git+https://github.com/igor-krawczuk/mini-moses`
+  - pip install -e .
 
 ## Download the data
 
