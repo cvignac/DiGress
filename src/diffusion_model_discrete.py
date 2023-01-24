@@ -105,7 +105,6 @@ class DiscreteDenoisingDiffusion(pl.LightningModule):
         self.val_counter = 0
 
     def training_step(self, data, i):
-        print(data)
         dense_data, node_mask = utils.to_dense(data.x, data.edge_index, data.edge_attr, data.batch)
         dense_data = dense_data.mask(node_mask)
         X, E = dense_data.X, dense_data.E
@@ -159,8 +158,8 @@ class DiscreteDenoisingDiffusion(pl.LightningModule):
         return {'loss': nll}
 
     def validation_epoch_end(self, outs) -> None:
-        metrics = [self.val_nll.compute(), self.val_X_kl.compute(), self.val_E_kl.compute(),
-                   self.val_y_kl.compute(), self.val_X_logp.compute(), self.val_E_logp.compute(),
+        metrics = [self.val_nll.compute(), self.val_X_kl.compute() * self.T, self.val_E_kl.compute() * self.T,
+                   self.val_y_kl.compute() * self.T, self.val_X_logp.compute(), self.val_E_logp.compute(),
                    self.val_y_logp.compute()]
         wandb.log({"val/epoch_NLL": metrics[0],
                    "val/X_kl": metrics[1],
@@ -234,9 +233,9 @@ class DiscreteDenoisingDiffusion(pl.LightningModule):
                    self.test_y_kl.compute(), self.test_X_logp.compute(), self.test_E_logp.compute(),
                    self.test_y_logp.compute()]
         wandb.log({"test/epoch_NLL": metrics[0],
-                   "test/X_mse": metrics[1],
-                   "test/E_mse": metrics[2],
-                   "test/y_mse": metrics[3],
+                   "test/X_kl": metrics[1],
+                   "test/E_kl": metrics[2],
+                   "test/y_kl": metrics[3],
                    "test/X_logp": metrics[4],
                    "test/E_logp": metrics[5],
                    "test/y_logp": metrics[6]}, commit=False)
@@ -268,6 +267,28 @@ class DiscreteDenoisingDiffusion(pl.LightningModule):
             samples_left_to_save -= to_save
             samples_left_to_generate -= to_generate
             chains_left_to_save -= chains_save
+        print("Saving the generated graphs")
+        filename = f'generated_samples1.txt'
+        for i in range(2, 10):
+            if os.path.exists(filename):
+                filename = f'generated_samples{i}.txt'
+            else:
+                break
+        with open(filename, 'w') as f:
+            for item in samples:
+                f.write(f"N={item[0].shape[0]}\n")
+                atoms = item[0].tolist()
+                f.write("X: \n")
+                for at in atoms:
+                    f.write(f"{at} ")
+                f.write("\n")
+                f.write("E: \n")
+                for bond_list in item[1]:
+                    for bond in bond_list:
+                        f.write(f"{bond} ")
+                    f.write("\n")
+                f.write("\n")
+        print("Saved.")
         print("Computing sampling metrics...")
         self.sampling_metrics.reset()
         self.sampling_metrics(samples, self.name, self.current_epoch, self.val_counter, test=True)
@@ -422,7 +443,7 @@ class DiscreteDenoisingDiffusion(pl.LightningModule):
         return noisy_data
 
     def compute_val_loss(self, pred, noisy_data, X, E, y, node_mask, test=False):
-        """Computes an estimator for the variational lower bound, or the simple loss (MSE).
+        """Computes an estimator for the variational lower bound.
            pred: (batch_size, n, total_features)
            noisy_data: dict
            X, E, y : (bs, n, dx),  (bs, n, n, de), (bs, dy)
@@ -439,7 +460,7 @@ class DiscreteDenoisingDiffusion(pl.LightningModule):
         kl_prior = self.kl_prior(X, E, y, node_mask)
 
         # 3. Diffusion loss
-        loss_all_t = self.compute_Lt(X, E, y, pred, noisy_data, node_mask, test)
+        loss_all_t = self.compute_Lt(X, E, y, pred, noisy_data, node_mask, test) * self.T
 
         # 4. Reconstruction loss
         # Compute L0 term : -log p (X, E, y | z_0) = reconstruction loss
@@ -549,9 +570,6 @@ class DiscreteDenoisingDiffusion(pl.LightningModule):
             atom_types = X[i, :n].cpu()
             edge_types = E[i, :n, :n].cpu()
             molecule_list.append([atom_types, edge_types])
-            if i < 3:
-                print("Example of generated E: ", atom_types)
-                print("Example of generated X: ", edge_types)
 
         predicted_graph_list = []
         for i in range(batch_size):

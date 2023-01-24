@@ -4,7 +4,7 @@ general:
     gpus : 1
     wandb: 'online'
     test_only: null
-    evaluate_all_checkpoints: True
+    evaluate_all_checkpoints: False
 train:
     n_epochs: 1000
     batch_size: 1024

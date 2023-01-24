@@ -73,7 +73,7 @@ class MolecularVisualization:
             os.makedirs(path)
 
         # visualize the final molecules
-        print(f"Visializing {num_molecules_to_visualize} of {len(molecules)}")
+        print(f"Visualizing {num_molecules_to_visualize} of {len(molecules)}")
         if num_molecules_to_visualize > len(molecules):
             print(f"Shortening to {len(molecules)}")
             num_molecules_to_visualize = len(molecules)

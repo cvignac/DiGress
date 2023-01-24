@@ -231,6 +231,7 @@ def main(cfg: DictConfig):
                     if ckpt_path == cfg.general.test_only:
                         continue
                     print("Loading checkpoint", ckpt_path)
+                    setup_wandb(cfg)
                     trainer.test(model, datamodule=datamodule, ckpt_path=ckpt_path)
 
 
