@@ -15,7 +15,7 @@ For the conditional generation experiments, check the `guidance` branch.
   - Install pytorch-geometric. Your version should match the pytorch version that is installed (https://pytorch-geometric.readthedocs.io/en/latest/notes/installation.html)
   - Install other packages using the requirement file: `pip install -r requirements.txt`
   - Install mini-moses: `pip install git+https://github.com/igor-krawczuk/mini-moses`
-  - pip install -e .
+  - Run `pip install -e .`
 
 ## Download the data
 

@@ -210,6 +210,7 @@ class DiscreteDenoisingDiffusion(pl.LightningModule):
             self.sampling_metrics.reset()
 
     def on_test_epoch_start(self) -> None:
+        print("Starting test...")
         self.test_nll.reset()
         self.test_X_kl.reset()
         self.test_E_kl.reset()
@@ -364,7 +365,7 @@ class DiscreteDenoisingDiffusion(pl.LightningModule):
         kl_x = (self.test_X_kl if test else self.val_X_kl)(prob_true.X, torch.log(prob_pred.X))
         kl_e = (self.test_E_kl if test else self.val_E_kl)(prob_true.E, torch.log(prob_pred.E))
         kl_y = (self.test_y_kl if test else self.val_y_kl)(prob_true.y, torch.log(prob_pred.y)) if pred_probs_y.numel() != 0 else 0
-        return kl_x + kl_e + kl_y
+        return self.T * (kl_x + kl_e + kl_y)
 
     def reconstruction_logp(self, t, X, E, y, node_mask):
         # Compute noise values for t = 0.
@@ -460,7 +461,7 @@ class DiscreteDenoisingDiffusion(pl.LightningModule):
         kl_prior = self.kl_prior(X, E, y, node_mask)
 
         # 3. Diffusion loss
-        loss_all_t = self.compute_Lt(X, E, y, pred, noisy_data, node_mask, test) * self.T
+        loss_all_t = self.compute_Lt(X, E, y, pred, noisy_data, node_mask, test)
 
         # 4. Reconstruction loss
         # Compute L0 term : -log p (X, E, y | z_0) = reconstruction loss
