@@ -481,7 +481,7 @@ class DiscreteDenoisingDiffusion(pl.LightningModule):
                    "Estimator loss terms": loss_all_t.mean(),
                    "log_pn": log_pN.mean(),
                    "loss_term_0": loss_term_0,
-                   'test_nll' if test else 'val_nll': nll}, commit=False)
+                   'batch_test_nll' if test else 'val_nll': nll}, commit=False)
         return nll
 
     def forward(self, noisy_data, extra_data, node_mask):

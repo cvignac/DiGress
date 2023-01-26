@@ -3,7 +3,8 @@ general:
     name : 'qm9h'
     gpus : 1
     wandb: 'online'
-    evaluate_all_checkpoints: True
+    evaluate_all_checkpoints: False
+    test_only: null
 train:
     n_epochs: 2000
     batch_size: 512

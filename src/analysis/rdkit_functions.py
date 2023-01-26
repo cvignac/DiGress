@@ -1,6 +1,7 @@
 import numpy as np
 import torch
 import re
+import wandb
 try:
     from rdkit import Chem
     print("Found rdkit, all good")
@@ -324,11 +325,13 @@ def compute_molecular_metrics(molecule_list, train_smiles, dataset_info, trainer
     rdkit_metrics = metrics.evaluate(molecule_list)
     all_smiles = rdkit_metrics[-1]
     if trainer is not None:
-        trainer.log_dict({'Validity': rdkit_metrics[0][0], 'Relaxed Validity': rdkit_metrics[0][1],
-                          'Uniqueness': rdkit_metrics[0][2], 'Novelty': rdkit_metrics[0][3]})
         nc = rdkit_metrics[-2]
-        trainer.log("nc_min", nc["nc_min"], reduce_fx="min")
+        dic = {'Validity': rdkit_metrics[0][0], 'Relaxed Validity': rdkit_metrics[0][1],
+               'Uniqueness': rdkit_metrics[0][2], 'Novelty': rdkit_metrics[0][3]}
+        trainer.log_dict(dic)
         trainer.log("nc_max", nc["nc_max"], reduce_fx="max")
         trainer.log("nc_mu", nc["nc_mu"], reduce_fx="mean")
+        if wandb.run:
+            wandb.log(dic)
 
     return validity_dict, rdkit_metrics, all_smiles
