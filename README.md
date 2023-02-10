@@ -38,6 +38,8 @@ of datasets that are currently available
     
 ## Checkpoints
 
+NOTE: since the code reformatting, these commits cannot be loaded anymore. If you want to use them, either use the commit `682e59019dd33073b1f0f4d3aaba7de6a308602e` or rename `src` to `dgd`, and then run `pip install -e .`
+
 We uploaded pretrained models for the Planar and SBM datasets. If you need other checkpoints, please write to us.
 
 Planar: https://drive.switch.ch/index.php/s/tZCjJ6VXU2Z3FIh
