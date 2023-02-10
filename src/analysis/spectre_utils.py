@@ -945,17 +945,9 @@ class PlanarSamplingMetrics(SpectreSamplingMetrics):
                          compute_emd=False,
                          metrics_list=['degree', 'clustering', 'orbit', 'spectre', 'planar'])
 
+
 class SBMSamplingMetrics(SpectreSamplingMetrics):
     def __init__(self, dataloaders):
         super().__init__(dataloaders=dataloaders,
                          compute_emd=False,
                          metrics_list=['degree', 'clustering', 'orbit', 'spectre', 'sbm'])
-
-if __name__ == '__main__':
-    G = n_comunities = np.random.random_integers(2, 5)
-    comunity_sizes = np.random.random_integers(20, 40, size=n_comunities)
-    probs = np.ones([n_comunities, n_comunities]) * 0.01
-    probs[np.arange(n_comunities), np.arange(n_comunities)] = 0.3
-    G = nx.stochastic_block_model(comunity_sizes, probs, seed=1)
-    p = is_sbm_graph(G, p_intra=0.3, p_inter=0.005, strict=True)
-    print(p)

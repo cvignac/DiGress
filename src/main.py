@@ -188,6 +188,8 @@ def main(cfg: DictConfig):
                                               save_top_k=5,
                                               mode='min',
                                               every_n_epochs=1)
+        last_ckpt_save = ModelCheckpoint(dirpath=f"checkpoints/{cfg.general.name}", filename='last', every_n_epochs=1)
+        callbacks.append(last_ckpt_save)
         callbacks.append(checkpoint_callback)
 
     if cfg.train.ema_decay > 0:
