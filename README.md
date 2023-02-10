@@ -44,6 +44,11 @@ We uploaded pretrained models for the Planar and SBM datasets. If you need other
 
 Planar: https://drive.switch.ch/index.php/s/tZCjJ6VXU2Z3FIh
 SBM: https://drive.switch.ch/index.php/s/rxWFVQX4Cu4Vq5j
+
+## Generated samples
+
+We provide the generated samples for some of the models. If you have retrained a model from scratch for which the samples are
+not available yet, we would be very happy if you could send them to us!
     
 ## Cite the paper
 
