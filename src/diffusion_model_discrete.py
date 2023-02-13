@@ -44,18 +44,14 @@ class DiscreteDenoisingDiffusion(pl.LightningModule):
         self.val_nll = NLL()
         self.val_X_kl = SumExceptBatchKL()
         self.val_E_kl = SumExceptBatchKL()
-        self.val_y_kl = SumExceptBatchKL()
         self.val_X_logp = SumExceptBatchMetric()
         self.val_E_logp = SumExceptBatchMetric()
-        self.val_y_logp = SumExceptBatchMetric()
 
         self.test_nll = NLL()
         self.test_X_kl = SumExceptBatchKL()
         self.test_E_kl = SumExceptBatchKL()
-        self.test_y_kl = SumExceptBatchKL()
         self.test_X_logp = SumExceptBatchMetric()
         self.test_E_logp = SumExceptBatchMetric()
-        self.test_y_logp = SumExceptBatchMetric()
 
         self.train_metrics = train_metrics
         self.sampling_metrics = sampling_metrics
@@ -142,10 +138,8 @@ class DiscreteDenoisingDiffusion(pl.LightningModule):
         self.val_nll.reset()
         self.val_X_kl.reset()
         self.val_E_kl.reset()
-        self.val_y_kl.reset()
         self.val_X_logp.reset()
         self.val_E_logp.reset()
-        self.val_y_logp.reset()
         self.sampling_metrics.reset()
 
     def validation_step(self, data, i):
@@ -159,18 +153,15 @@ class DiscreteDenoisingDiffusion(pl.LightningModule):
 
     def validation_epoch_end(self, outs) -> None:
         metrics = [self.val_nll.compute(), self.val_X_kl.compute() * self.T, self.val_E_kl.compute() * self.T,
-                   self.val_y_kl.compute() * self.T, self.val_X_logp.compute(), self.val_E_logp.compute(),
-                   self.val_y_logp.compute()]
+                   self.val_X_logp.compute(), self.val_E_logp.compute()]
         wandb.log({"val/epoch_NLL": metrics[0],
                    "val/X_kl": metrics[1],
                    "val/E_kl": metrics[2],
-                   "val/y_kl": metrics[3],
-                   "val/X_logp": metrics[4],
-                   "val/E_logp": metrics[5],
-                   "val/y_logp": metrics[6]}, commit=False)
+                   "val/X_logp": metrics[3],
+                   "val/E_logp": metrics[4]}, commit=False)
 
         print(f"Epoch {self.current_epoch}: Val NLL {metrics[0] :.2f} -- Val Atom type KL {metrics[1] :.2f} -- ",
-              f"Val Edge type KL: {metrics[2] :.2f} -- Val Global feat. KL {metrics[3] :.2f}\n")
+              f"Val Edge type KL: {metrics[2] :.2f}")
 
         # Log val nll with default Lightning logger, so it can be monitored by checkpoint callback
         val_nll = metrics[0]
@@ -214,10 +205,8 @@ class DiscreteDenoisingDiffusion(pl.LightningModule):
         self.test_nll.reset()
         self.test_X_kl.reset()
         self.test_E_kl.reset()
-        self.test_y_kl.reset()
         self.test_X_logp.reset()
         self.test_E_logp.reset()
-        self.test_y_logp.reset()
 
     def test_step(self, data, i):
         dense_data, node_mask = utils.to_dense(data.x, data.edge_index, data.edge_attr, data.batch)
@@ -231,18 +220,15 @@ class DiscreteDenoisingDiffusion(pl.LightningModule):
     def test_epoch_end(self, outs) -> None:
         """ Measure likelihood on a test set and compute stability metrics. """
         metrics = [self.test_nll.compute(), self.test_X_kl.compute(), self.test_E_kl.compute(),
-                   self.test_y_kl.compute(), self.test_X_logp.compute(), self.test_E_logp.compute(),
-                   self.test_y_logp.compute()]
+                   self.test_X_logp.compute(), self.test_E_logp.compute()]
         wandb.log({"test/epoch_NLL": metrics[0],
                    "test/X_kl": metrics[1],
                    "test/E_kl": metrics[2],
-                   "test/y_kl": metrics[3],
-                   "test/X_logp": metrics[4],
-                   "test/E_logp": metrics[5],
-                   "test/y_logp": metrics[6]}, commit=False)
+                   "test/X_logp": metrics[3],
+                   "test/E_logp": metrics[4]}, commit=False)
 
         print(f"Epoch {self.current_epoch}: Test NLL {metrics[0] :.2f} -- Test Atom type KL {metrics[1] :.2f} -- ",
-              f"Test Edge type KL: {metrics[2] :.2f} -- Test Global feat. KL {metrics[3] :.2f}\n")
+              f"Test Edge type KL: {metrics[2] :.2f}")
 
         test_nll = metrics[0]
         wandb.log({"test/epoch_NLL": test_nll}, commit=False)
@@ -297,7 +283,7 @@ class DiscreteDenoisingDiffusion(pl.LightningModule):
         print("Done.")
 
 
-    def kl_prior(self, X, E, y, node_mask):
+    def kl_prior(self, X, E, node_mask):
         """Computes the KL between q(z1 | x) and the prior p(z1) = Normal(0, 1).
 
         This is essentially a lot of work for something that is in practice negligible in the loss. However, you
@@ -313,14 +299,12 @@ class DiscreteDenoisingDiffusion(pl.LightningModule):
         # Compute transition probabilities
         probX = X @ Qtb.X  # (bs, n, dx_out)
         probE = E @ Qtb.E.unsqueeze(1)  # (bs, n, n, de_out)
-        proby = y @ Qtb.y if y.numel() > 0 else y
         assert probX.shape == X.shape
 
         bs, n, _ = probX.shape
 
         limit_X = self.limit_dist.X[None, None, :].expand(bs, n, -1).type_as(probX)
         limit_E = self.limit_dist.E[None, None, None, :].expand(bs, n, n, -1).type_as(probE)
-        uniform_dist_y = torch.ones_like(proby) / self.ydim_output
 
         # Make sure that masked rows do not contribute to the loss
         limit_dist_X, limit_dist_E, probX, probE = diffusion_utils.mask_distributions(true_X=limit_X.clone(),
@@ -331,11 +315,9 @@ class DiscreteDenoisingDiffusion(pl.LightningModule):
 
         kl_distance_X = F.kl_div(input=probX.log(), target=limit_dist_X, reduction='none')
         kl_distance_E = F.kl_div(input=probE.log(), target=limit_dist_E, reduction='none')
-        kl_distance_y = F.kl_div(input=proby.log(), target=uniform_dist_y, reduction='none')
 
         return diffusion_utils.sum_except_batch(kl_distance_X) + \
-               diffusion_utils.sum_except_batch(kl_distance_E) + \
-               diffusion_utils.sum_except_batch(kl_distance_y)
+               diffusion_utils.sum_except_batch(kl_distance_E)
 
     def compute_Lt(self, X, E, y, pred, noisy_data, node_mask, test):
         pred_probs_X = F.softmax(pred.X, dim=-1)
@@ -364,10 +346,9 @@ class DiscreteDenoisingDiffusion(pl.LightningModule):
                                                                                                 node_mask=node_mask)
         kl_x = (self.test_X_kl if test else self.val_X_kl)(prob_true.X, torch.log(prob_pred.X))
         kl_e = (self.test_E_kl if test else self.val_E_kl)(prob_true.E, torch.log(prob_pred.E))
-        kl_y = (self.test_y_kl if test else self.val_y_kl)(prob_true.y, torch.log(prob_pred.y)) if pred_probs_y.numel() != 0 else 0
-        return self.T * (kl_x + kl_e + kl_y)
+        return self.T * (kl_x + kl_e)
 
-    def reconstruction_logp(self, t, X, E, y, node_mask):
+    def reconstruction_logp(self, t, X, E, node_mask):
         # Compute noise values for t = 0.
         t_zeros = torch.zeros_like(t)
         beta_0 = self.noise_schedule(t_zeros)
@@ -458,17 +439,16 @@ class DiscreteDenoisingDiffusion(pl.LightningModule):
         log_pN = self.node_dist.log_prob(N)
 
         # 2. The KL between q(z_T | x) and p(z_T) = Uniform(1/num_classes). Should be close to zero.
-        kl_prior = self.kl_prior(X, E, y, node_mask)
+        kl_prior = self.kl_prior(X, E, node_mask)
 
         # 3. Diffusion loss
         loss_all_t = self.compute_Lt(X, E, y, pred, noisy_data, node_mask, test)
 
         # 4. Reconstruction loss
         # Compute L0 term : -log p (X, E, y | z_0) = reconstruction loss
-        prob0 = self.reconstruction_logp(t, X, E, y, node_mask)
+        prob0 = self.reconstruction_logp(t, X, E, node_mask)
 
-        loss_term_0 = self.val_X_logp(X * prob0.X.log()) + self.val_E_logp(E * prob0.E.log()) + \
-                      self.val_y_logp(y * prob0.y.log())
+        loss_term_0 = self.val_X_logp(X * prob0.X.log()) + self.val_E_logp(E * prob0.E.log())
 
         # Combine terms
         nlls = - log_pN + kl_prior + loss_all_t - loss_term_0

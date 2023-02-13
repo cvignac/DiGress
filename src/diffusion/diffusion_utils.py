@@ -323,6 +323,14 @@ def compute_batched_over0_posterior_distribution(X_t, Qt, Qsb, Qtb):
 
 
 def mask_distributions(true_X, true_E, pred_X, pred_E, node_mask):
+    # Add a small value everywhere to avoid nans
+    pred_X = pred_X + 1e-7
+    pred_X = pred_X / torch.sum(pred_X, dim=-1, keepdim=True)
+
+    pred_E = pred_E + 1e-7
+    pred_E = pred_E / torch.sum(pred_E, dim=-1, keepdim=True)
+
+
     # Set masked rows to arbitrary distributions, so it doesn't contribute to loss
     row_X = torch.zeros(true_X.size(-1), dtype=torch.float, device=true_X.device)
     row_X[0] = 1.
