@@ -16,6 +16,8 @@ For the conditional generation experiments, check the `guidance` branch.
   - Install other packages using the requirement file: `pip install -r requirements.txt`
   - Install mini-moses: `pip install git+https://github.com/igor-krawczuk/mini-moses`
   - Run `pip install -e .`
+  - Navigate to the ./util/orca directory and compile orca.cpp: `g++ -O2 -std=c++11 -o orca orca.cpp`
+
 
 ## Download the data
 
