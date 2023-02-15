@@ -36,3 +36,9 @@ class Etoy(nn.Module):
         z = torch.hstack((m, mi, ma, std))
         out = self.lin(z)
         return out
+
+
+def masked_softmax(x, mask, **kwargs):
+    x_masked = x.clone()
+    x_masked[mask == 0] = -float("inf")
+    return torch.softmax(x_masked, **kwargs)

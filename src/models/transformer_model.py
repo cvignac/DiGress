@@ -10,7 +10,7 @@ from torch import Tensor
 
 from src import utils
 from src.diffusion import diffusion_utils
-from src.models.layers import Xtoy, Etoy
+from src.models.layers import Xtoy, Etoy, masked_softmax
 
 
 class XEyTransformerLayer(nn.Module):
@@ -138,6 +138,7 @@ class NodeEdgeBlock(nn.Module):
         :param node_mask: bs, n
         :return: newX, newE, new_y with the same shape.
         """
+        bs, n, _ = X.shape
         x_mask = node_mask.unsqueeze(-1)        # bs, n, 1
         e_mask1 = x_mask.unsqueeze(2)           # bs, n, 1, 1
         e_mask2 = x_mask.unsqueeze(1)           # bs, 1, n, 1
@@ -179,7 +180,8 @@ class NodeEdgeBlock(nn.Module):
         diffusion_utils.assert_correctly_masked(newE, e_mask1 * e_mask2)
 
         # Compute attentions. attn is still (bs, n, n, n_head, df)
-        attn = F.softmax(Y, dim=2)
+        softmax_mask = e_mask2.expand(-1, n, -1, self.n_head)    # bs, 1, n, 1
+        attn = masked_softmax(Y, softmax_mask, dim=2)  # bs, n, n, n_head
 
         V = self.v(X) * x_mask                        # bs, n, dx
         V = V.reshape((V.size(0), V.size(1), self.n_head, self.df))

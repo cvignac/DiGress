@@ -332,7 +332,7 @@ def mask_distributions(true_X, true_E, pred_X, pred_E, node_mask):
 
 
     # Set masked rows to arbitrary distributions, so it doesn't contribute to loss
-    row_X = torch.zeros(true_X.size(-1), dtype=torch.float, device=true_X.device)
+    row_X = torch.ones(true_X.size(-1), dtype=torch.float, device=true_X.device)
     row_X[0] = 1.
     row_E = torch.zeros(true_E.size(-1), dtype=torch.float, device=true_E.device)
     row_E[0] = 1.

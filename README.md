@@ -55,10 +55,12 @@ not available yet, we would be very happy if you could send them to us!
 ## Cite the paper
 
 ```
-@article{vignac2022digress,
-  title={DiGress: Discrete Denoising diffusion for graph generation},
-  author={Vignac, Clement and Krawczuk, Igor and Siraudin, Antoine and Wang, Bohan and Cevher, Volkan and Frossard, Pascal},
-  journal={arXiv preprint arXiv:2209.14734},
-  year={2022}
+@inproceedings{
+vignac2023digress,
+title={DiGress: Discrete Denoising diffusion for graph generation},
+author={Clement Vignac and Igor Krawczuk and Antoine Siraudin and Bohan Wang and Volkan Cevher and Pascal Frossard},
+booktitle={The Eleventh International Conference on Learning Representations },
+year={2023},
+url={https://openreview.net/forum?id=UaAD-Nu86WX}
 }
 ```
