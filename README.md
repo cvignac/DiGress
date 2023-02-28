@@ -1,4 +1,4 @@
-# DiGress: Discrete Denoising diffusion models for graph generation (ICLR 2023)
+# DiGress: Discrete Denoising diffusion models for graph generation
 
 
 Warning: The code has been updated after experiments were run for the paper. If you don't manage to reproduce the 
