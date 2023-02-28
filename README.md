@@ -46,6 +46,7 @@ We uploaded pretrained models for the Planar and SBM datasets. If you need other
 
 Planar: https://drive.switch.ch/index.php/s/tZCjJ6VXU2Z3FIh
 SBM: https://drive.switch.ch/index.php/s/rxWFVQX4Cu4Vq5j
+Guacamol: https://drive.switch.ch/index.php/s/jjM3pIHdxWrUGOH
 
 ## Generated samples
 
