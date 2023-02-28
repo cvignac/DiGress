@@ -152,3 +152,4 @@ ggg_data/
 ggg_utils/
 dgd/timer.dat
 saved_models/
+src/analysis/orca/tmp*
