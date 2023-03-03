@@ -39,6 +39,8 @@ class Etoy(nn.Module):
 
 
 def masked_softmax(x, mask, **kwargs):
+    if mask.sum() == 0:
+        return x
     x_masked = x.clone()
     x_masked[mask == 0] = -float("inf")
     return torch.softmax(x_masked, **kwargs)
