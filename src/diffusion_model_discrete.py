@@ -6,12 +6,12 @@ import time
 import wandb
 import os
 
-from src.models.transformer_model import GraphTransformer
-from src.diffusion.noise_schedule import DiscreteUniformTransition, PredefinedNoiseScheduleDiscrete,\
+from models.transformer_model import GraphTransformer
+from diffusion.noise_schedule import DiscreteUniformTransition, PredefinedNoiseScheduleDiscrete,\
     MarginalUniformTransition
 from src.diffusion import diffusion_utils
-from src.metrics.train_metrics import TrainLossDiscrete
-from src.metrics.abstract_metrics import SumExceptBatchMetric, SumExceptBatchKL, NLL
+from metrics.train_metrics import TrainLossDiscrete
+from metrics.abstract_metrics import SumExceptBatchMetric, SumExceptBatchKL, NLL
 from src import utils
 
 
@@ -101,6 +101,9 @@ class DiscreteDenoisingDiffusion(pl.LightningModule):
         self.val_counter = 0
 
     def training_step(self, data, i):
+        if data.edge_index.numel() == 0:
+            print("Found a batch with no edges. Skipping.")
+            return
         dense_data, node_mask = utils.to_dense(data.x, data.edge_index, data.edge_attr, data.batch)
         dense_data = dense_data.mask(node_mask)
         X, E = dense_data.X, dense_data.E

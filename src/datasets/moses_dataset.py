@@ -5,8 +5,6 @@ import mini_moses as moses
 import os
 import os.path as osp
 import pathlib
-import pathlib
-import hashlib
 from typing import Any, Sequence
 
 import torch

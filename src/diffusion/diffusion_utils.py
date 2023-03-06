@@ -236,35 +236,34 @@ def sample_discrete_features(probX, probE, node_mask):
         :param probE: bs, n, n, de_out     edge features
         :param proby: bs, dy_out           global features.
     '''
+    bs, n, _ = probX.shape
     # Noise X
     # The masked rows should define probability distributions as well
     probX[~node_mask] = 1 / probX.shape[-1]
 
     # Flatten the probability tensor to sample with multinomial
-    probX = probX.reshape(probX.size(0) * probX.size(1), -1)       # (bs * n, dx_out)
-    # assert (abs(probX.sum(dim=-1) - 1) < 1e-4).all()
+    probX = probX.reshape(bs * n, -1)       # (bs * n, dx_out)
 
     # Sample X
     X_t = probX.multinomial(1)                                  # (bs * n, 1)
-    X_t = X_t.reshape(node_mask.size(0), node_mask.size(1))     # (bs, n)
+    X_t = X_t.reshape(bs, n)     # (bs, n)
 
     # Noise E
     # The masked rows should define probability distributions as well
     inverse_edge_mask = ~(node_mask.unsqueeze(1) * node_mask.unsqueeze(2))
-    diag_mask = torch.zeros(probE.size(0), probE.size(1), probE.size(2)) + \
-                torch.eye(probE.size(1), probE.size(2)).unsqueeze(0)
+    diag_mask = torch.eye(n).unsqueeze(0).expand(bs, -1, -1)
 
     probE[inverse_edge_mask] = 1 / probE.shape[-1]
     probE[diag_mask.bool()] = 1 / probE.shape[-1]
 
-    probE = probE.reshape(probE.size(0) * probE.size(1) * probE.size(2), -1)    # (bs * n * n, de_out)
+    probE = probE.reshape(bs * n * n, -1)    # (bs * n * n, de_out)
 
     # Sample E
-    E_t = probE.multinomial(1).reshape(node_mask.size(0), node_mask.size(1), node_mask.size(1))   # (bs, n, n)
+    E_t = probE.multinomial(1).reshape(bs, n, n)   # (bs, n, n)
     E_t = torch.triu(E_t, diagonal=1)
     E_t = (E_t + torch.transpose(E_t, 1, 2))
 
-    return PlaceHolder(X=X_t, E=E_t, y=torch.zeros(X_t.shape[0], 0).type_as(X_t))
+    return PlaceHolder(X=X_t, E=E_t, y=torch.zeros(bs, 0).type_as(X_t))
 
 
 def compute_posterior_distribution(M, M_t, Qt_M, Qsb_M, Qtb_M):

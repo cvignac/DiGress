@@ -9,8 +9,6 @@ import networkx as nx
 import numpy as np
 import rdkit.Chem
 import wandb
-import matplotlib
-# matplotlib.use("macOSX")
 import matplotlib.pyplot as plt
 
 

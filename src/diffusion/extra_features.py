@@ -1,5 +1,4 @@
 import torch
-# from torch_geometric.transforms import largest_connected_components
 from src import utils
 
 
@@ -168,7 +167,7 @@ def get_eigenvectors_features(vectors, node_mask, n_connected, k=2):
     # Create an indicator for the nodes outside the largest connected components
     first_ev = torch.round(vectors[:, :, 0], decimals=3) * node_mask                        # bs, n
     # Add random value to the mask to prevent 0 from becoming the mode
-    random = torch.randn(bs, n) * (~node_mask)                                   # bs, n
+    random = torch.randn(bs, n, device=node_mask.device) * (~node_mask)                                   # bs, n
     first_ev = first_ev + random
     most_common = torch.mode(first_ev, dim=1).values                                    # values: bs -- indices: bs
     mask = ~ (first_ev == most_common.unsqueeze(1))

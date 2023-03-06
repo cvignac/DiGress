@@ -19,17 +19,17 @@ from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.utilities.warnings import PossibleUserWarning
 
 from src import utils
-from src.datasets import guacamol_dataset, qm9_dataset, moses_dataset
-from src.datasets.spectre_dataset import SBMDataModule, Comm20DataModule, PlanarDataModule, SpectreDatasetInfos
-from src.metrics.abstract_metrics import TrainAbstractMetricsDiscrete, TrainAbstractMetrics
-from src.analysis.spectre_utils import PlanarSamplingMetrics, SBMSamplingMetrics, Comm20SamplingMetrics
-from src.diffusion_model import LiftedDenoisingDiffusion
-from src.diffusion_model_discrete import DiscreteDenoisingDiffusion
-from src.metrics.molecular_metrics import TrainMolecularMetrics, SamplingMolecularMetrics
-from src.metrics.molecular_metrics_discrete import TrainMolecularMetricsDiscrete
-from src.analysis.visualization import MolecularVisualization, NonMolecularVisualization
-from src.diffusion.extra_features import DummyExtraFeatures, ExtraFeatures
-from src.diffusion.extra_features_molecular import ExtraMolecularFeatures
+from datasets import guacamol_dataset, qm9_dataset, moses_dataset
+from datasets.spectre_dataset import SBMDataModule, Comm20DataModule, PlanarDataModule, SpectreDatasetInfos
+from metrics.abstract_metrics import TrainAbstractMetricsDiscrete, TrainAbstractMetrics
+from analysis.spectre_utils import PlanarSamplingMetrics, SBMSamplingMetrics, Comm20SamplingMetrics
+from diffusion_model import LiftedDenoisingDiffusion
+from diffusion_model_discrete import DiscreteDenoisingDiffusion
+from metrics.molecular_metrics import TrainMolecularMetrics, SamplingMolecularMetrics
+from metrics.molecular_metrics_discrete import TrainMolecularMetricsDiscrete
+from analysis.visualization import MolecularVisualization, NonMolecularVisualization
+from diffusion.extra_features import DummyExtraFeatures, ExtraFeatures
+from diffusion.extra_features_molecular import ExtraMolecularFeatures
 
 warnings.filterwarnings("ignore", category=PossibleUserWarning)
 

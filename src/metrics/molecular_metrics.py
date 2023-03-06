@@ -61,7 +61,6 @@ class SamplingMolecularMetrics(nn.Module):
         self.generated_edge_dist = GeneratedEdgesDistribution(di.output_dims['E'])
         self.generated_valency_dist = ValencyDistribution(di.max_n_nodes)
 
-        num_atoms_max = di.max_n_nodes
         n_target_dist = di.n_nodes.type_as(self.generated_n_dist.n_dist)
         n_target_dist = n_target_dist / torch.sum(n_target_dist)
         self.register_buffer('n_target_dist', n_target_dist)

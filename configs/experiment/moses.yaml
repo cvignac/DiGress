@@ -8,7 +8,7 @@ general:
     test_only: null
     check_val_every_n_epochs: 1
     val_check_interval: null
-    sample_every_val: 2
+    sample_every_val: 4
     samples_to_generate: 256
     samples_to_save: 20
     chains_to_save: 5
@@ -20,10 +20,11 @@ general:
 
 train:
     optimizer: adamw # adamw,nadamw,nadam,adan => nadamw for large batches, see http://arxiv.org/abs/2102.06356 for the use of nesterov momentum with large batches
-    n_epochs: 200
+    n_epochs: 300
     batch_size: 256
     save_model: True
     lr: 2e-4
+    num_workers: 4
 model:
     n_layers: 12
     lambda_train: [5, 0]

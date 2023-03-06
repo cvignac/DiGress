@@ -20,7 +20,6 @@ except:
     print("Couldn't import graphtool, spectre utils won't work")
 import pygsp as pg
 import secrets
-from random import shuffle
 from string import ascii_uppercase, digits
 from datetime import datetime
 from scipy.linalg import eigvalsh

@@ -118,8 +118,8 @@ class BasicMolecularMetrics(object):
             novelty = -1.0
             uniqueness = 0.0
             unique = []
-        return [validity, relaxed_validity, uniqueness, novelty], unique,\
-               dict(nc_min=nc_min, nc_max=nc_max, nc_mu=nc_mu), all_smiles
+        return ([validity, relaxed_validity, uniqueness, novelty], unique,
+                dict(nc_min=nc_min, nc_max=nc_max, nc_mu=nc_mu), all_smiles)
 
 
 def mol2smiles(mol):
@@ -292,7 +292,7 @@ def check_stability(atom_types, edge_types, dataset_info, debug=False,atom_decod
     return molecule_stable, n_stable_bonds, len(atom_types)
 
 
-def compute_molecular_metrics(molecule_list, train_smiles, dataset_info, trainer=None):
+def compute_molecular_metrics(molecule_list, train_smiles, dataset_info):
     """ molecule_list: (dict) """
 
     if not dataset_info.remove_h:
@@ -316,22 +316,19 @@ def compute_molecular_metrics(molecule_list, train_smiles, dataset_info, trainer
         fraction_mol_stable = molecule_stable / float(n_molecules)
         fraction_atm_stable = nr_stable_bonds / float(n_atoms)
         validity_dict = {'mol_stable': fraction_mol_stable, 'atm_stable': fraction_atm_stable}
-        if trainer is not None:
-            trainer.log_dict(validity_dict)
+        if wandb.run:
+            wandb.log(validity_dict)
     else:
         validity_dict = {'mol_stable': -1, 'atm_stable': -1}
 
     metrics = BasicMolecularMetrics(dataset_info, train_smiles)
     rdkit_metrics = metrics.evaluate(molecule_list)
     all_smiles = rdkit_metrics[-1]
-    if trainer is not None:
+    if wandb.run:
         nc = rdkit_metrics[-2]
         dic = {'Validity': rdkit_metrics[0][0], 'Relaxed Validity': rdkit_metrics[0][1],
-               'Uniqueness': rdkit_metrics[0][2], 'Novelty': rdkit_metrics[0][3]}
-        trainer.log_dict(dic)
-        trainer.log("nc_max", nc["nc_max"], reduce_fx="max")
-        trainer.log("nc_mu", nc["nc_mu"], reduce_fx="mean")
-        if wandb.run:
-            wandb.log(dic)
+               'Uniqueness': rdkit_metrics[0][2], 'Novelty': rdkit_metrics[0][3],
+               'nc_max': nc['nc_max'], 'nc_mu': nc['nc_mu']}
+        wandb.log(dic)
 
     return validity_dict, rdkit_metrics, all_smiles
