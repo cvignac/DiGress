@@ -193,7 +193,7 @@ class MOSESinfos(AbstractDatasetInfos):
                           edge_types=f'{self.name}_edge_types.txt',
                           valency_distribution=f'{self.name}_valencies.txt')
 
-        self.n_nodes = torch.Tensor([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 3.097634362347889692e-06,
+        self.n_nodes = torch.tensor([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 3.097634362347889692e-06,
                                      1.858580617408733815e-05, 5.007842264603823423e-05, 5.678996240021660924e-05,
                                      1.244216400664299726e-04, 4.486406978685408831e-04, 2.253012731671333313e-03,
                                      3.231865121051669121e-03, 6.709992419928312302e-03, 2.289564721286296844e-02,
@@ -202,10 +202,10 @@ class MOSESinfos(AbstractDatasetInfos):
                                      1.436946094036102295e-01, 9.265746921300888062e-02, 1.820066757500171661e-02,
                                      2.065089574898593128e-06])
         self.max_n_nodes = len(self.n_nodes) - 1 if self.n_nodes is not None else None
-        self.node_types = torch.Tensor([0.722338, 0.13661, 0.163655, 0.103549, 0.1421803, 0.005411, 0.00150, 0.0])
-        self.edge_types = torch.Tensor([0.89740, 0.0472947, 0.062670, 0.0003524, 0.0486])
+        self.node_types = torch.tensor([0.722338, 0.13661, 0.163655, 0.103549, 0.1421803, 0.005411, 0.00150, 0.0])
+        self.edge_types = torch.tensor([0.89740, 0.0472947, 0.062670, 0.0003524, 0.0486])
         self.valency_distribution = torch.zeros(3 * self.max_n_nodes - 2)
-        self.valency_distribution[:7] = torch.Tensor([0.0, 0.1055, 0.2728, 0.3613, 0.2499, 0.00544, 0.00485])
+        self.valency_distribution[:7] = torch.tensor([0.0, 0.1055, 0.2728, 0.3613, 0.2499, 0.00544, 0.00485])
 
         if meta is None:
             meta = dict(n_nodes=None, node_types=None, edge_types=None, valency_distribution=None)

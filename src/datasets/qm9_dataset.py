@@ -171,7 +171,7 @@ class QM9Dataset(InMemoryDataset):
             y = torch.zeros((1, 0), dtype=torch.float)
 
             if self.remove_h:
-                type_idx = torch.Tensor(type_idx).long()
+                type_idx = torch.tensor(type_idx).long()
                 to_keep = type_idx > 0
                 edge_index, edge_attr = subgraph(to_keep, edge_index, edge_attr, relabel_nodes=True,
                                                  num_nodes=len(to_keep))
@@ -235,14 +235,14 @@ class QM9infos(AbstractDatasetInfos):
             self.atom_weights = {0: 12, 1: 14, 2: 16, 3: 19}
             self.max_n_nodes = 9
             self.max_weight = 150
-            self.n_nodes = torch.Tensor([0, 2.2930e-05, 3.8217e-05, 6.8791e-05, 2.3695e-04, 9.7072e-04,
+            self.n_nodes = torch.tensor([0, 2.2930e-05, 3.8217e-05, 6.8791e-05, 2.3695e-04, 9.7072e-04,
                                          0.0046472, 0.023985, 0.13666, 0.83337])
-            self.node_types = torch.Tensor([0.7230, 0.1151, 0.1593, 0.0026])
-            self.edge_types = torch.Tensor([0.7261, 0.2384, 0.0274, 0.0081, 0.0])
+            self.node_types = torch.tensor([0.7230, 0.1151, 0.1593, 0.0026])
+            self.edge_types = torch.tensor([0.7261, 0.2384, 0.0274, 0.0081, 0.0])
 
             super().complete_infos(n_nodes=self.n_nodes, node_types=self.node_types)
             self.valency_distribution = torch.zeros(3 * self.max_n_nodes - 2)
-            self.valency_distribution[0: 6] = torch.Tensor([2.6071e-06, 0.163, 0.352, 0.320, 0.16313, 0.00073])
+            self.valency_distribution[0: 6] = torch.tensor([2.6071e-06, 0.163, 0.352, 0.320, 0.16313, 0.00073])
         else:
             self.atom_encoder = {'H': 0, 'C': 1, 'N': 2, 'O': 3, 'F': 4}
             self.atom_decoder = ['H', 'C', 'N', 'O', 'F']
@@ -251,18 +251,18 @@ class QM9infos(AbstractDatasetInfos):
             self.max_n_nodes = 29
             self.max_weight = 390
             self.atom_weights = {0: 1, 1: 12, 2: 14, 3: 16, 4: 19}
-            self.n_nodes = torch.Tensor([0, 0, 0, 1.5287e-05, 3.0574e-05, 3.8217e-05,
+            self.n_nodes = torch.tensor([0, 0, 0, 1.5287e-05, 3.0574e-05, 3.8217e-05,
                                          9.1721e-05, 1.5287e-04, 4.9682e-04, 1.3147e-03, 3.6918e-03, 8.0486e-03,
                                          1.6732e-02, 3.0780e-02, 5.1654e-02, 7.8085e-02, 1.0566e-01, 1.2970e-01,
                                          1.3332e-01, 1.3870e-01, 9.4802e-02, 1.0063e-01, 3.3845e-02, 4.8628e-02,
                                          5.4421e-03, 1.4698e-02, 4.5096e-04, 2.7211e-03, 0.0000e+00, 2.6752e-04])
 
-            self.node_types = torch.Tensor([0.5122, 0.3526, 0.0562, 0.0777, 0.0013])
-            self.edge_types = torch.Tensor([0.88162,  0.11062,  5.9875e-03,  1.7758e-03, 0])
+            self.node_types = torch.tensor([0.5122, 0.3526, 0.0562, 0.0777, 0.0013])
+            self.edge_types = torch.tensor([0.88162,  0.11062,  5.9875e-03,  1.7758e-03, 0])
 
             super().complete_infos(n_nodes=self.n_nodes, node_types=self.node_types)
             self.valency_distribution = torch.zeros(3 * self.max_n_nodes - 2)
-            self.valency_distribution[0:6] = torch.Tensor([0, 0.5136, 0.0840, 0.0554, 0.3456, 0.0012])
+            self.valency_distribution[0:6] = torch.tensor([0, 0.5136, 0.0840, 0.0554, 0.3456, 0.0012])
 
         if recompute_statistics:
             np.set_printoptions(suppress=True, precision=5)

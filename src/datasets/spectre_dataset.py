@@ -92,7 +92,7 @@ class SpectreDatasetInfos(AbstractDatasetInfos):
         self.datamodule = datamodule
         self.name = 'nx_graphs'
         self.n_nodes = self.datamodule.node_counts()
-        self.node_types = torch.Tensor([1])               # There are no node types
+        self.node_types = torch.tensor([1])               # There are no node types
         self.edge_types = self.datamodule.edge_counts()
         super().complete_infos(self.n_nodes, self.node_types)
 

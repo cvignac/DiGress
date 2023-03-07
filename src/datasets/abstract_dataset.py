@@ -65,7 +65,7 @@ class AbstractDataModule(pl.LightningDataModule):
             num_classes = data.edge_attr.shape[1]
             break
 
-        d = torch.Tensor(num_classes)
+        d = torch.zeros(num_classes, dtype=torch.float)
 
         for split in ['train', 'val', 'test']:
             for i, data in enumerate(self.dataloaders[split]):
@@ -91,7 +91,7 @@ class MolecularDataModule(AbstractDataModule):
     def valency_count(self, max_n_nodes):
         valencies = torch.zeros(3 * max_n_nodes - 2)   # Max valency possible if everything is connected
 
-        multiplier = torch.Tensor([0, 1, 2, 3, 1.5])
+        multiplier = torch.tensor([0, 1, 2, 3, 1.5])
 
         for split in ['train', 'val', 'test']:
             for i, data in enumerate(self.dataloaders[split]):

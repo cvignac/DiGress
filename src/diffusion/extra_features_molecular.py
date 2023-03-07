@@ -49,7 +49,7 @@ class ValencyFeature:
 class WeightFeature:
     def __init__(self, max_weight, atom_weights):
         self.max_weight = max_weight
-        self.atom_weight_list = torch.Tensor(list(atom_weights.values()))
+        self.atom_weight_list = torch.tensor(list(atom_weights.values()))
 
     def __call__(self, noisy_data):
         X = torch.argmax(noisy_data['X_t'], dim=-1)     # (bs, n)
