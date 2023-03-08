@@ -555,14 +555,6 @@ class DiscreteDenoisingDiffusion(pl.LightningModule):
             edge_types = E[i, :n, :n].cpu()
             molecule_list.append([atom_types, edge_types])
 
-        predicted_graph_list = []
-        for i in range(batch_size):
-            n = n_nodes[i]
-            atom_types = X[i, :n].cpu()
-            edge_types = E[i, :n, :n].cpu()
-            predicted_graph_list.append([atom_types, edge_types])
-
-
         # Visualize chains
         if self.visualization_tools is not None:
             print('Visualizing chains...')
@@ -585,7 +577,6 @@ class DiscreteDenoisingDiffusion(pl.LightningModule):
             result_path = os.path.join(current_path,
                                        f'graphs/{self.name}/epoch{self.current_epoch}_b{batch_id}/')
             self.visualization_tools.visualize(result_path, molecule_list, save_final)
-            self.visualization_tools.visualize(result_path, predicted_graph_list, save_final, log='predicted')
             print("Done.")
 
         return molecule_list

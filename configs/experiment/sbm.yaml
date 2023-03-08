@@ -14,7 +14,7 @@ general:
     final_model_samples_to_save: 30
     final_model_chains_to_save: 20
 train:
-    n_epochs: 30000
+    n_epochs: 50000
     batch_size: 16
     save_model: True
 model:

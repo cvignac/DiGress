@@ -14,12 +14,12 @@ general:
     final_model_samples_to_save: 30
     final_model_chains_to_save: 20
 train:
-    n_epochs: 30000
-    batch_size: 32
+    n_epochs: 100000
+    batch_size: 64
     save_model: True
 model:
     diffusion_steps: 1000
-    n_layers: 8
+    n_layers: 10
     lambda_train: [5, 0]
     extra_features: 'all'
 

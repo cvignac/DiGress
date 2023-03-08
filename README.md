@@ -52,6 +52,10 @@ Guacamol: https://drive.switch.ch/index.php/s/jjM3pIHdxWrUGOH
 
 We provide the generated samples for some of the models. If you have retrained a model from scratch for which the samples are
 not available yet, we would be very happy if you could send them to us!
+
+## Troubleshooting 
+
+`PermissionError: [Errno 13] Permission denied: '/home/vignac/DiGress/src/analysis/orca/orca'`: You probably did not compile orca.
     
 ## Cite the paper
 

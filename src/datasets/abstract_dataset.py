@@ -52,9 +52,8 @@ class AbstractDataModule(pl.LightningDataModule):
 
         counts = torch.zeros(num_classes)
 
-        for split in ['train', 'val', 'test']:
-            for i, data in enumerate(self.dataloaders[split]):
-                counts += data.x.sum(dim=0)
+        for i, data in enumerate(self.dataloaders['train']):
+            counts += data.x.sum(dim=0)
 
         counts = counts / counts.sum()
         return counts
@@ -67,21 +66,20 @@ class AbstractDataModule(pl.LightningDataModule):
 
         d = torch.zeros(num_classes, dtype=torch.float)
 
-        for split in ['train', 'val', 'test']:
-            for i, data in enumerate(self.dataloaders[split]):
-                unique, counts = torch.unique(data.batch, return_counts=True)
+        for i, data in enumerate(self.dataloaders['train']):
+            unique, counts = torch.unique(data.batch, return_counts=True)
 
-                all_pairs = 0
-                for count in counts:
-                    all_pairs += count * (count - 1)
+            all_pairs = 0
+            for count in counts:
+                all_pairs += count * (count - 1)
 
-                num_edges = data.edge_index.shape[1]
-                num_non_edges = all_pairs - num_edges
+            num_edges = data.edge_index.shape[1]
+            num_non_edges = all_pairs - num_edges
 
-                edge_types = data.edge_attr.sum(dim=0)
-                assert num_non_edges >= 0
-                d[0] += num_non_edges
-                d[1:] += edge_types[1:]
+            edge_types = data.edge_attr.sum(dim=0)
+            assert num_non_edges >= 0
+            d[0] += num_non_edges
+            d[1:] += edge_types[1:]
 
         d = d / d.sum()
         return d
