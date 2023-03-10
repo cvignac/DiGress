@@ -40,18 +40,23 @@ of datasets that are currently available
     
 ## Checkpoints
 
-NOTE: since the code reformatting, these commits cannot be loaded anymore. If you want to use them, either use the commit `682e59019dd33073b1f0f4d3aaba7de6a308602e` or rename `src` to `dgd`, and then run `pip install -e .`
+The following checkpoints should work with the latest commit:
 
-We uploaded pretrained models for the Planar and SBM datasets. If you need other checkpoints, please write to us.
+  - Planar: https://drive.switch.ch/index.php/s/hRWLp8gOGOGFzgR
+Performance of this checkpoint: 
+    - Test NLL: 1135.6080 
+    - `{'spectre': 0.006211824145982536, 'clustering': 0.0563302653184386, 'orbit': 0.00980205113753696, 'planar_acc': 0.85, 'sampling/frac_unique': 1.0, 'sampling/frac_unique_non_iso': 1.0, 'sampling/frac_unic_non_iso_valid': 0.85, 'sampling/frac_non_iso': 1.0} `
 
-Planar: https://drive.switch.ch/index.php/s/tZCjJ6VXU2Z3FIh
-SBM: https://drive.switch.ch/index.php/s/rxWFVQX4Cu4Vq5j
-Guacamol: https://drive.switch.ch/index.php/s/jjM3pIHdxWrUGOH
+The following checkpoints require to revert to commit `682e59019dd33073b1f0f4d3aaba7de6a308602e` and run `pip install -e .`:
+
+  - SBM: https://drive.switch.ch/index.php/s/rxWFVQX4Cu4Vq5j
+  - Guacamol: https://drive.switch.ch/index.php/s/jjM3pIHdxWrUGOH
 
 ## Generated samples
 
 We provide the generated samples for some of the models. If you have retrained a model from scratch for which the samples are
 not available yet, we would be very happy if you could send them to us!
+
 
 ## Troubleshooting 
 
