@@ -42,14 +42,24 @@ of datasets that are currently available
 
 The following checkpoints should work with the latest commit:
 
-  - Planar: https://drive.switch.ch/index.php/s/hRWLp8gOGOGFzgR
-Performance of this checkpoint: 
+  - Planar: https://drive.switch.ch/index.php/s/hRWLp8gOGOGFzgR \\
+    Performance of this checkpoint: 
     - Test NLL: 1135.6080 
     - `{'spectre': 0.006211824145982536, 'clustering': 0.0563302653184386, 'orbit': 0.00980205113753696, 'planar_acc': 0.85, 'sampling/frac_unique': 1.0, 'sampling/frac_unique_non_iso': 1.0, 'sampling/frac_unic_non_iso_valid': 0.85, 'sampling/frac_non_iso': 1.0} `
 
+  - MOSES (the model in the paper was trained a bit longer than this one): https://drive.switch.ch/index.php/s/DBbvfMmezjg6KUm \\
+    Performance of this checkpoint:
+    - Test NLL: 203.8171 
+    - `{'valid': 0.86032, 'unique@1000': 1.0, 'unique@10000': 0.9999, 'FCD/Test': 0.6176261401223826, 'SNN/Test': 0.5493580505032953, 'Frag/Test': 0.9986637035374839, 'Scaf/Test': 0.8997144919185305, 'FCD/TestSF': 1.2799741890619032, 'SNN/TestSF': 0.5231424506655995, 'Frag/TestSF': 0.9968362360368359, 'Scaf/TestSF': 0.11830576038721641, 'IntDiv': 0.8550915438149056, 'IntDiv2': 0.8489191659624407, 'Filters': 0.9707550678817184, 'logP': 0.02719348046624242, 'SA': 0.05725088257521343, 'QED': 0.0043940205061221965, 'weight': 0.7913020095007184, 'Novelty': 0.9442790697674419}`
+
+  - SBM: https://drive.switch.ch/index.php/s/rxWFVQX4Cu4Vq5j \\
+    Performance of this checkpoint:
+    - Test NLL: 4757.903
+    - `{'spectre': 0.0060240439382095445, 'clustering': 0.05020166160905111, 'orbit': 0.04615866844490847, 'sbm_acc': 0.675, 'sampling/frac_unique': 1.0, 'sampling/frac_unique_non_iso': 1.0, 'sampling/frac_unic_non_iso_valid': 0.625, 'sampling/frac_non_iso': 1.0}`
+
+
 The following checkpoints require to revert to commit `682e59019dd33073b1f0f4d3aaba7de6a308602e` and run `pip install -e .`:
 
-  - SBM: https://drive.switch.ch/index.php/s/rxWFVQX4Cu4Vq5j
   - Guacamol: https://drive.switch.ch/index.php/s/jjM3pIHdxWrUGOH
 
 ## Generated samples
