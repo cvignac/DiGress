@@ -72,6 +72,25 @@ not available yet, we would be very happy if you could send them to us!
 
 `PermissionError: [Errno 13] Permission denied: '/home/vignac/DiGress/src/analysis/orca/orca'`: You probably did not compile orca.
     
+
+## Use DiGress on a new dataset
+
+To implement a new dataset, you will need to create a new file in the `src/datasets` folder. Depending on whether you are considering
+molecules or abstract graphs, you can base this file on `moses_dataset.py` or `spectre_datasets.py`, for example. 
+This file should implement a `Dataset` class to process the data (check [PyG documentation](https://pytorch-geometric.readthedocs.io/en/latest/tutorial/create_dataset.html)), 
+as well as a `DatasetInfos` class that is used to define the noise model and some metrics.
+
+For molecular datasets, you'll need to specify several things in the DatasetInfos:
+  - The atom_encoder, which defines the one-hot encoding of the atom types in your dataset
+  - The atom_decoder, which is simply the inverse mapping of the atom encoder
+  - The atomic weight for each atom atype
+  - The most common valency for each atom type
+
+The node counts and the distribution of node types and edge types can be computed automatically using functions from `AbstractDataModule`.
+
+Once the dataset file is written, the code in main.py can be adapted to handle the new dataset, and a new file can be added in `configs/dataset`.
+
+
 ## Cite the paper
 
 ```

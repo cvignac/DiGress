@@ -89,6 +89,7 @@ class MolecularDataModule(AbstractDataModule):
     def valency_count(self, max_n_nodes):
         valencies = torch.zeros(3 * max_n_nodes - 2)   # Max valency possible if everything is connected
 
+        # No bond, single bond, double bond, triple bond, aromatic bond
         multiplier = torch.tensor([0, 1, 2, 3, 1.5])
 
         for split in ['train', 'val', 'test']:
