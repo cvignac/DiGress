@@ -17,10 +17,16 @@ from src import utils
 from src.analysis.rdkit_functions import mol2smiles, build_molecule_with_partial_charges, compute_molecular_metrics
 from src.datasets.abstract_dataset import AbstractDatasetInfos, MolecularDataModule
 
+# If you want to filter the dataset, set this flag to True, then run main.py with cfg.dataset.filtered=False
+# Then delete data/guacamol/guacamol_pyg/processed
+# Then run main.py with cfg.dataset.filtered=True
+filter_dataset = False
+
 
 TRAIN_HASH = '05ad85d871958a05c02ab51a4fde8530'
 VALID_HASH = 'e53db4bff7dc4784123ae6df72e3b1f0'
 TEST_HASH = '677b757ccec4809febd83850b43e1616'
+
 
 def files_exist(files) -> bool:
     # NOTE: We return `False` in case `files` is empty, leading to a
@@ -132,7 +138,6 @@ class GuacamolDataset(InMemoryDataset):
             return
 
     def process(self):
-        preprocess = False
 
         RDLogger.DisableLog('rdApp.*')
         types = {'C': 0, 'N': 1, 'O': 2, 'F': 3, 'B': 4, 'Br': 5, 'Cl': 6, 'I': 7, 'P': 8, 'S': 9, 'Se': 10, 'Si': 11}
@@ -173,7 +178,7 @@ class GuacamolDataset(InMemoryDataset):
 
             data = Data(x=x, edge_index=edge_index, edge_attr=edge_attr, y=y, idx=i)
 
-            if not preprocess:
+            if not filter_dataset:
                 if self.pre_filter is not None and not self.pre_filter(data):
                     continue
                 if self.pre_transform is not None:
@@ -203,13 +208,12 @@ class GuacamolDataset(InMemoryDataset):
                     except Chem.rdchem.KekulizeException:
                         print("Can't kekulize molecule")
 
-        if preprocess:
-            smiles_save_path = osp.join(pathlib.Path(self.raw_paths[0]).parent, 'new_test.smiles')
+        if filter_dataset:
+            smiles_save_path = osp.join(pathlib.Path(self.raw_paths[0]).parent, f'new_{self.stage}.smiles')
             print(smiles_save_path)
             with open(smiles_save_path, 'w') as f:
                 f.writelines('%s\n' % s for s in smiles_kept)
             print(f"Number of molecules kept: {len(smiles_kept)} / {len(smile_list)}")
-            assert False, "This assert avoids overwriting train smiles with val or test"
         else:
             torch.save(self.collate(data_list), self.processed_paths[self.file_idx])
 

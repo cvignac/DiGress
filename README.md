@@ -25,7 +25,11 @@ For the conditional generation experiments, check the `guidance` branch.
   - For the community, SBM and planar datasets, data can be found at https://github.com/KarolisMart/SPECTRE/tree/main/data
   - Moses dataset can be found at https://github.com/molecularsets/moses/tree/master/data
   
-
+If you want to run Guacamol on the filtered data:
+  - Set filter_dataset=True in `guacamol_dataset.py`
+  - Run main.py with cfg.dataset.filtered=False
+  - Delete data/guacamol/guacamol_pyg/processed
+  - Run main.py with cfg.dataset.filtered=True
 
 ## Run the code
   
