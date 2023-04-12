@@ -63,15 +63,13 @@ class QM9Dataset(InMemoryDataset):
     raw_url2 = 'https://ndownloader.figshare.com/files/3195404'
     processed_url = 'https://data.pyg.org/datasets/qm9_v3.zip'
 
-    def __init__(self, stage, root, remove_h: bool, target_prop=None,
-                 transform=None, pre_transform=None, pre_filter=None):
+    def __init__(self, stage, root, remove_h: bool, transform=None, pre_transform=None, pre_filter=None):
         """ stage: train, val, test
             root: data directory
             remove_h: remove hydrogens
             target_prop: property to predict (for guidance only).
         """
         self.stage = stage
-        self.target_prop = target_prop
         if self.stage == 'train':
             self.file_idx = 0
         elif self.stage == 'val':
@@ -229,11 +227,11 @@ class QM9DataModule(MolecularDataModule):
         base_path = pathlib.Path(os.path.realpath(__file__)).parents[2]
         root_path = os.path.join(base_path, self.datadir)
         datasets = {'train': QM9Dataset(stage='train', root=root_path, remove_h=self.cfg.dataset.remove_h,
-                                        target_prop=target, transform=RemoveYTransform()),
+                                        transform=transform if self.regressor else RemoveYTransform()),
                     'val': QM9Dataset(stage='val', root=root_path, remove_h=self.cfg.dataset.remove_h,
-                                      target_prop=target, transform=RemoveYTransform()),
+                                      transform=transform if self.regressor else RemoveYTransform()),
                     'test': QM9Dataset(stage='test', root=root_path, remove_h=self.cfg.dataset.remove_h,
-                                       target_prop=target, transform=transform)}
+                                       transform=transform)}
         super().prepare_data(datasets)
 
 
