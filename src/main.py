@@ -72,7 +72,7 @@ def get_resume_adaptive(cfg, model_kwargs):
     new_cfg.general.resume = resume_path
     new_cfg.general.name = new_cfg.general.name + '_resume'
 
-    new_cfg = cfg.update_config_with_new_keys(new_cfg, saved_cfg)
+    new_cfg = utils.update_config_with_new_keys(new_cfg, saved_cfg)
     return new_cfg, model
 
 
