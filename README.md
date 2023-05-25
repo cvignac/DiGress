@@ -1,10 +1,9 @@
 # DiGress: Discrete Denoising diffusion models for graph generation
 
-
-Warning: The code has been updated after experiments were run for the paper. If you don't manage to reproduce the 
-paper results, please write to us so that we can investigate the issue.
-
-For the conditional generation experiments, check the `guidance` branch. 
+  - For the conditional generation experiments, check the `guidance` branch.
+  - If you are training new models from scratch, we recommand to use the `fixed_bug` branch in which some neural
+network layers have been fixed. The `fixed_bug` branch has not been evaluated, but should normally perform better.
+If you train the `fixed_bug` branch on datasets provided in this code, we would be happy to know the results.
 
 ## Environment installation
   - Download anaconda/miniconda if needed
