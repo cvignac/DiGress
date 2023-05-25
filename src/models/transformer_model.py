@@ -205,8 +205,8 @@ class NodeEdgeBlock(nn.Module):
 
         # Process y based on X axnd E
         y = self.y_y(y)
-        e_y = self.e_y(E)
-        x_y = self.x_y(X)
+        e_y = self.e_y(E, e_mask1, e_mask2)
+        x_y = self.x_y(X, x_mask)
         new_y = y + x_y + e_y
         new_y = self.y_out(new_y)               # bs, dy
 
