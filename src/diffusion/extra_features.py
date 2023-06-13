@@ -233,9 +233,15 @@ class KNodeCycles:
 
     def k5_cycle(self):
         diag_a5 = batch_diagonal(self.k5_matrix)
-        triangles = batch_diagonal(self.k3_matrix)
+        triangles = batch_diagonal(self.k3_matrix) / 2
 
-        c5 = diag_a5 - 2 * triangles * self.d - (self.adj_matrix @ triangles.unsqueeze(-1)).sum(dim=-1) + triangles
+        # Triangle count matrix (indicates for each node i how many triangles it shares with node j)
+        joint_cycles = self.k2_matrix * self.adj_matrix
+        # c5 = diag_a5 - 2 * triangles * self.d - (self.adj_matrix @ triangles.unsqueeze(-1)).sum(dim=-1) + triangles
+        prod = 2 * (joint_cycles @ self.d.unsqueeze(-1)).squeeze(-1)
+        prod2 = 2 * (self.adj_matrix @ triangles.unsqueeze(-1)).squeeze(-1)
+        c5 = diag_a5 - prod - 4 * self.d * triangles - prod2 + 10 * triangles
+
         return (c5 / 2).unsqueeze(-1).float(), (c5.sum(dim=-1) / 10).unsqueeze(-1).float()
 
     def k6_cycle(self):
