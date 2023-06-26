@@ -12,6 +12,7 @@ This code was tested with PyTorch 2.0.1, cuda 11.8 and torch_geometrics 2.3.1
   - Create a rdkit environment that directly contains rdkit:
     
     ```conda create -c conda-forge -n digress rdkit=2023.03.2 python=3.9```
+  - `conda activate digress`
   - Check that this line does not return an error:
     
     ``` python3 -c 'from rdkit import Chem' ```
