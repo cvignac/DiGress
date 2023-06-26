@@ -27,7 +27,7 @@ This code was tested with PyTorch 2.0.1, cuda 11.8 and torch_geometrics 2.3.1
     ```conda install -c "nvidia/label/cuda-11.8.0" cuda```
   - Install a corresponding version of pytorch, for example: 
     
-    ```pip3 install torch --index-url https://download.pytorch.org/whl/cu118```
+    ```pip3 install torch==2.0.1 --index-url https://download.pytorch.org/whl/cu118```
   - Install other packages using the requirement file: 
     
     ```pip install -r requirements.txt```
