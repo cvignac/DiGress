@@ -6,16 +6,18 @@ network layers have been fixed. The `fixed_bug` branch has not been evaluated, b
 If you train the `fixed_bug` branch on datasets provided in this code, we would be happy to know the results.
 
 ## Environment installation
+This code was tested with PyTorch 2.0.1, cuda 11.8 and torch_geometrics 2.3.1
+
   - Download anaconda/miniconda if needed
-  - Create a rdkit environment that directly contains rdkit: `conda create -c conda-forge -n digress rdkit python=3.9`
-  - Install graph-tool (https://graph-tool.skewed.de/): `conda install -c conda-forge graph-tool`
-  - Install the nvcc drivers for your cuda version. For example, `conda install -c "nvidia/label/cuda-11.3.1" cuda-nvcc`
-  - Install pytorch 1.10 or 1.11 (https://pytorch.org/)
-  - Install pytorch-geometric. Your version should match the pytorch version that is installed (https://pytorch-geometric.readthedocs.io/en/latest/notes/installation.html)
+  - Create a rdkit environment that directly contains rdkit: `conda create -c conda-forge -n digress rdkit=2023.03.2 python=3.9`
+  - Check that `python3 -c “from rdkit import Chem”` does not return an error
+  - Install graph-tool (https://graph-tool.skewed.de/): `conda install -c conda-forge graph-tool=2.56`
+  - Check that `python3 -c “import graph_tool as gt”` does not return an error
+  - Install the nvcc drivers for your cuda version. For example, `conda install -c "nvidia/label/cuda-11.8.0" cuda`
+  - Install a corresponding version of pytorch, for example `pip3 install torch --index-url https://download.pytorch.org/whl/cu118`
   - Install other packages using the requirement file: `pip install -r requirements.txt`
   - Install mini-moses: `pip install git+https://github.com/igor-krawczuk/mini-moses`
   - Run `pip install -e .`
-  - Navigate to the ./src/analysis/orca directory and compile orca.cpp: `g++ -O2 -std=c++11 -o orca orca.cpp`
 
 
 ## Download the data
