@@ -14,13 +14,13 @@ This code was tested with PyTorch 2.0.1, cuda 11.8 and torch_geometrics 2.3.1
     ```conda create -c conda-forge -n digress rdkit=2023.03.2 python=3.9```
   - Check that this line does not return an error:
     
-    ``` python3 -c “from rdkit import Chem” ```
+    ``` python3 -c 'from rdkit import Chem' ```
   - Install graph-tool (https://graph-tool.skewed.de/): 
     
     ```conda install -c conda-forge graph-tool=2.56```
   - Check that this line does not return an error:
     
-    ```python3 -c “import graph_tool as gt”```
+    ```python3 -c 'import graph_tool as gt' ```
   - Install the nvcc drivers for your cuda version. For example:
     
     ```conda install -c "nvidia/label/cuda-11.8.0" cuda```
