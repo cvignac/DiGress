@@ -394,7 +394,7 @@ class DiscreteDenoisingDiffusion(pl.LightningModule):
 
         # Sample a timestep t.
         # When evaluating, the loss for t=0 is computed separately
-        lowest_t = 0 if self.training else 1
+        lowest_t = 1
         t_int = torch.randint(lowest_t, self.T + 1, size=(X.size(0), 1), device=X.device).float()  # (bs, 1)
         s_int = t_int - 1
 
