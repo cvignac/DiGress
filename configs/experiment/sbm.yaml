@@ -15,7 +15,7 @@ general:
     final_model_chains_to_save: 20
 train:
     n_epochs: 50000
-    batch_size: 16
+    batch_size: 12
     save_model: True
 model:
     diffusion_steps: 1000

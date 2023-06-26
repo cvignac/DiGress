@@ -9,21 +9,42 @@ If you train the `fixed_bug` branch on datasets provided in this code, we would 
 This code was tested with PyTorch 2.0.1, cuda 11.8 and torch_geometrics 2.3.1
 
   - Download anaconda/miniconda if needed
-  - Create a rdkit environment that directly contains rdkit: `conda create -c conda-forge -n digress rdkit=2023.03.2 python=3.9`
-  - Check that `python3 -c “from rdkit import Chem”` does not return an error
-  - Install graph-tool (https://graph-tool.skewed.de/): `conda install -c conda-forge graph-tool=2.56`
-  - Check that `python3 -c “import graph_tool as gt”` does not return an error
-  - Install the nvcc drivers for your cuda version. For example, `conda install -c "nvidia/label/cuda-11.8.0" cuda`
-  - Install a corresponding version of pytorch, for example `pip3 install torch --index-url https://download.pytorch.org/whl/cu118`
-  - Install other packages using the requirement file: `pip install -r requirements.txt`
-  - Install mini-moses: `pip install git+https://github.com/igor-krawczuk/mini-moses`
-  - Run `pip install -e .`
+  - Create a rdkit environment that directly contains rdkit:
+    
+    ```conda create -c conda-forge -n digress rdkit=2023.03.2 python=3.9```
+  - Check that this line does not return an error:
+    
+    ``` python3 -c “from rdkit import Chem” ```
+  - Install graph-tool (https://graph-tool.skewed.de/): 
+    
+    ```conda install -c conda-forge graph-tool=2.56```
+  - Check that this line does not return an error:
+    
+    ```python3 -c “import graph_tool as gt”```
+  - Install the nvcc drivers for your cuda version. For example:
+    
+    ```conda install -c "nvidia/label/cuda-11.8.0" cuda```
+  - Install a corresponding version of pytorch, for example: 
+    
+    ```pip3 install torch --index-url https://download.pytorch.org/whl/cu118```
+  - Install other packages using the requirement file: 
+    
+    ```pip install -r requirements.txt```
+  - Install mini-moses: 
+    
+    ```pip install git+https://github.com/igor-krawczuk/mini-moses```
+  - Run:
+    
+    ```pip install -e .```
 
 
 ## Download the data
 
   - QM9 and Guacamol should download by themselves when you run the code.
   - For the community, SBM and planar datasets, data can be found at https://github.com/KarolisMart/SPECTRE/tree/main/data
+     - For SBM, you can use: `wget https://raw.githubusercontent.com/KarolisMart/SPECTRE/main/data/sbm_200.pt`
+     - For planar, `wget https://raw.githubusercontent.com/KarolisMart/SPECTRE/main/data/planar_64_200.pt`
+    Download the files and simply place them in the `data` folder.
   - Moses dataset can be found at https://github.com/molecularsets/moses/tree/master/data
   
 If you want to run Guacamol on the filtered data, either download it from https://drive.switch.ch/index.php/s/pjlZ8A7PADiBGrr
