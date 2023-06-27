@@ -18,7 +18,7 @@ This code was tested with PyTorch 2.0.1, cuda 11.8 and torch_geometrics 2.3.1
     ``` python3 -c 'from rdkit import Chem' ```
   - Install graph-tool (https://graph-tool.skewed.de/): 
     
-    ```conda install -c conda-forge graph-tool=2.56```
+    ```conda install -c conda-forge graph-tool=2.45```
   - Check that this line does not return an error:
     
     ```python3 -c 'import graph_tool as gt' ```
@@ -37,6 +37,10 @@ This code was tested with PyTorch 2.0.1, cuda 11.8 and torch_geometrics 2.3.1
   - Run:
     
     ```pip install -e .```
+
+  - Navigate to the ./src/analysis/orca directory and compile orca.cpp: 
+    
+     ```g++ -O2 -std=c++11 -o orca orca.cpp```
 
 
 ## Download the data
