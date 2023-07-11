@@ -1,6 +1,5 @@
 from rdkit import Chem, RDLogger
 from rdkit.Chem.rdchem import BondType as BT
-import mini_moses as moses
 
 import os
 import os.path as osp
@@ -11,7 +10,8 @@ import torch
 import torch.nn.functional as F
 from tqdm import tqdm
 import numpy as np
-from torch_geometric.data import Data, InMemoryDataset
+from torch_geometric.data import Data, InMemoryDataset, download_url
+import pandas as pd
 
 from src import utils
 from src.analysis.rdkit_functions import mol2smiles, build_molecule_with_partial_charges, compute_molecular_metrics
@@ -29,25 +29,30 @@ atom_decoder = ['C', 'N', 'S', 'O', 'F', 'Cl', 'Br', 'H']
 
 
 class MOSESDataset(InMemoryDataset):
-    def __init__(self, stage, root, transform=None, pre_transform=None, pre_filter=None, preprocess=False):
+    train_url = 'https://media.githubusercontent.com/media/molecularsets/moses/master/data/train.csv'
+    val_url = 'https://media.githubusercontent.com/media/molecularsets/moses/master/data/test.csv'
+    test_url = 'https://media.githubusercontent.com/media/molecularsets/moses/master/data/test_scaffolds.csv'
+
+    def __init__(self, stage, root, filter_dataset: bool, transform=None, pre_transform=None, pre_filter=None):
         self.stage = stage
         self.atom_decoder = atom_decoder
+        self.filter_dataset = filter_dataset
         if self.stage == 'train':
             self.file_idx = 0
         elif self.stage == 'val':
             self.file_idx = 1
         else:
             self.file_idx = 2
-        self.preprocess = preprocess
         super().__init__(root, transform, pre_transform, pre_filter)
         self.data, self.slices = torch.load(self.processed_paths[self.file_idx])
 
     @property
     def raw_file_names(self):
-        return ['moses_train.smiles', 'moses_val.smiles', 'moses_test.smiles']
+        return ['train_moses.csv', 'val_moses.csv', 'test_moses.csv']
+
     @property
     def split_file_name(self):
-        return ['moses_train.smiles', 'moses_val.smiles', 'moses_test.smiles']
+        return ['train_moses.csv', 'val_moses.csv', 'test_moses.csv']
 
     @property
     def split_paths(self):
@@ -58,32 +63,36 @@ class MOSESDataset(InMemoryDataset):
 
     @property
     def processed_file_names(self):
-        return ['moses_proc_tr.pt', 'moses_proc_val.pt', 'moses_proc_test.pt']
+        if self.filter_dataset:
+            return ['train_filtered.pt', 'test_filtered.pt', 'test_scaffold_filtered.pt']
+        else:
+            return ['train.pt', 'test.pt', 'test_scaffold.pt']
 
     def download(self):
-        """
-        MOSES install takes care of downloading for us (or should, at least)
-        """
-        pass
+        import rdkit  # noqa
+        train_path = download_url(self.train_url, self.raw_dir)
+        os.rename(train_path, osp.join(self.raw_dir, 'train_moses.csv'))
+
+        test_path = download_url(self.test_url, self.raw_dir)
+        os.rename(test_path, osp.join(self.raw_dir, 'val_moses.csv'))
+
+        valid_path = download_url(self.val_url, self.raw_dir)
+        os.rename(valid_path, osp.join(self.raw_dir, 'test_moses.csv'))
+
 
     def process(self):
-        preprocess = self.preprocess
         RDLogger.DisableLog('rdApp.*')
         types = {atom: i for i, atom in enumerate(self.atom_decoder)}
 
         bonds = {BT.SINGLE: 0, BT.DOUBLE: 1, BT.TRIPLE: 2, BT.AROMATIC: 3}
 
-        if self.stage == 'train':
-            smile_list = moses.get_dataset('train')            # thank you moses authors for such an easy API
-        elif self.stage == 'val':
-            smile_list = moses.get_dataset('test')
-        else:
-            smile_list = moses.get_dataset('test_scaffolds')
-
+        path = self.split_paths[self.file_idx]
+        smiles_list = pd.read_csv(path)['SMILES'].values
 
         data_list = []
         smiles_kept = []
-        for i, smile in enumerate(tqdm(smile_list)):
+
+        for i, smile in enumerate(tqdm(smiles_list)):
             mol = Chem.MolFromSmiles(smile)
             N = mol.GetNumAtoms()
 
@@ -114,14 +123,7 @@ class MOSESDataset(InMemoryDataset):
 
             data = Data(x=x, edge_index=edge_index, edge_attr=edge_attr, y=y, idx=i)
 
-            if not preprocess:
-                if self.pre_filter is not None and not self.pre_filter(data):
-                    continue
-                if self.pre_transform is not None:
-                    data = self.pre_transform(data)
-                data_list.append(data)
-                continue
-            else:
+            if self.filter_dataset:
                 # Try to build the molecule again from the graph. If it fails, do not add it to the training set
                 dense_data, node_mask = utils.to_dense(data.x, data.edge_index, data.edge_attr, data.batch)
                 dense_data = dense_data.mask(node_mask, collapse=True)
@@ -130,48 +132,51 @@ class MOSESDataset(InMemoryDataset):
                 assert X.size(0) == 1
                 atom_types = X[0]
                 edge_types = E[0]
-                mol = build_molecule_with_partial_charges(atom_types, edge_types, self.atom_decoder)
+                mol = build_molecule_with_partial_charges(atom_types, edge_types, atom_decoder)
                 smiles = mol2smiles(mol)
                 if smiles is not None:
                     try:
                         mol_frags = Chem.rdmolops.GetMolFrags(mol, asMols=True, sanitizeFrags=True)
-                        largest_mol = max(mol_frags, default=mol, key=lambda m: m.GetNumAtoms())
-                        smiles = mol2smiles(largest_mol)
-                        smiles_kept.append(smiles)
+                        if len(mol_frags) == 1:
+                            data_list.append(data)
+                            smiles_kept.append(smiles)
+
                     except Chem.rdchem.AtomValenceException:
                         print("Valence error in GetmolFrags")
                     except Chem.rdchem.KekulizeException:
                         print("Can't kekulize molecule")
+            else:
+                if self.pre_filter is not None and not self.pre_filter(data):
+                    continue
+                if self.pre_transform is not None:
+                    data = self.pre_transform(data)
+                data_list.append(data)
 
-        if preprocess:
-            smiles_save_path = osp.join(pathlib.Path(self.raw_paths[0]).parent, 'new_test.smiles')
+        torch.save(self.collate(data_list), self.processed_paths[self.file_idx])
+
+        if self.filter_dataset:
+            smiles_save_path = osp.join(pathlib.Path(self.raw_paths[0]).parent, f'new_{self.stage}.smiles')
             print(smiles_save_path)
             with open(smiles_save_path, 'w') as f:
                 f.writelines('%s\n' % s for s in smiles_kept)
-            print(f"Number of molecules kept: {len(smiles_kept)} / {len(smile_list)}")
-            assert False, "This assert avoids overwriting train smiles with val or test"
-        else:
-            torch.save(self.collate(data_list), self.processed_paths[self.file_idx])
+            print(f"Number of molecules kept: {len(smiles_kept)} / {len(smiles_list)}")
 
 
-class MOSESDataModule(MolecularDataModule):
-    def __init__(self, cfg, preprocess=False):
-        # if preprocess is set to True, perform the "go back to smiles" check to filter the train-set
-        super().__init__(cfg)
+
+class MosesDataModule(MolecularDataModule):
+    def __init__(self, cfg):
         self.remove_h = False
         self.datadir = cfg.dataset.datadir
+        self.filter_dataset = cfg.dataset.filter
         self.train_smiles = []
-        self.preprocess = preprocess
-        self.prepare_data()
-
-    def prepare_data(self) -> None:
         base_path = pathlib.Path(os.path.realpath(__file__)).parents[2]
         root_path = os.path.join(base_path, self.datadir)
+        datasets = {'train': MOSESDataset(stage='train', root=root_path, filter_dataset=self.filter_dataset),
+                    'val': MOSESDataset(stage='val', root=root_path, filter_dataset=self.filter_dataset),
+                    'test': MOSESDataset(stage='test', root=root_path, filter_dataset=self.filter_dataset)}
+        super().__init__(cfg, datasets)
 
-        datasets = {'train': MOSESDataset(stage='train', root=root_path, preprocess=self.preprocess),
-                    'val': MOSESDataset(stage='val', root=root_path, preprocess=self.preprocess),
-                    'test': MOSESDataset(stage='test', root=root_path, preprocess=self.preprocess)}
-        super().prepare_data(datasets)
+
 
 
 class MOSESinfos(AbstractDatasetInfos):

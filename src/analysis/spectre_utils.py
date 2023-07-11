@@ -3,7 +3,7 @@
 # Adapted from https://github.com/lrjconan/GRAN/ which in turn is adapted from https://github.com/JiaxuanYou/graph-generation
 #
 ###############################################################################
-
+import graph_tool.all as gt
 ##Navigate to the ./util/orca directory and compile orca.cpp
 # g++ -O2 -std=c++11 -o orca orca.cpp
 import os
@@ -14,10 +14,7 @@ import numpy as np
 import networkx as nx
 import subprocess as sp
 import concurrent.futures
-try:
-    import graph_tool.all as gt
-except:
-    print("Couldn't import graphtool, spectre utils won't work")
+
 import pygsp as pg
 import secrets
 from string import ascii_uppercase, digits
@@ -760,6 +757,7 @@ class SamplingSpectreMetrics(nn.Module):
               f" test graphs -- emd computation: {self.compute_emd}")
         networkx_graphs = []
         adjacency_matrices = []
+
         print("Building networkx graphs...")
         for graph in generated_graphs:
             node_types, edge_types = graph
@@ -775,7 +773,8 @@ class SamplingSpectreMetrics(nn.Module):
         print("Computing degree stats..")
         degree = degree_stats(self.test_graphs, networkx_graphs, is_parallel=True,
                               compute_emd=self.compute_emd)
-        wandb.run.summary['degree'] = degree
+        if wandb.run:
+            wandb.run.summary['degree'] = degree
         print("Computing spectre stats...")
         # val_eigvals = [graph["eigval"][1:self.k + 1].cpu().detach().numpy() for graph in self.val]
         # train_eigvals = [graph["eigval"][1:self.k + 1].cpu().detach().numpy() for graph in self.train]
@@ -785,21 +784,26 @@ class SamplingSpectreMetrics(nn.Module):
         #                       compute_emd=False)          # This is the one called wavelet
         spectre = spectral_stats(self.test_graphs, networkx_graphs, is_parallel=True, n_eigvals=-1,
                                  compute_emd=self.compute_emd)
-        wandb.run.summary['spectre'] = spectre
+        if wandb.run:
+            wandb.run.summary['spectre'] = spectre
         print("Computing clustering stats...")
         clustering = clustering_stats(self.test_graphs, networkx_graphs, bins=100, is_parallel=True,
                                       compute_emd=self.compute_emd)
-        wandb.run.summary['clustering'] = clustering
+        if wandb.run:
+            wandb.run.summary['clustering'] = clustering
         motif = motif_stats(self.test_graphs, networkx_graphs, motif_type='4cycle', ground_truth_match=None, bins=100,
                             compute_emd=self.compute_emd)
-        wandb.run.summary['motif'] = motif
+        if wandb.run:
+            wandb.run.summary['motif'] = motif
         print("Computing orbit stats...")
         orbit = orbit_stats_all(self.test_graphs, networkx_graphs, compute_emd=self.compute_emd)
         wandb.run.summary['orbit'] = orbit
-        print("Computing accuracy...")
+        if wandb.run:
+            print("Computing accuracy...")
         acc = eval_acc_sbm_graph(networkx_graphs, refinement_steps=100, strict=True)
         wandb.run.summary['acc'] = acc
-        print("Computing all fractions...")
+        if wandb.run:
+            print("Computing all fractions...")
         frac_unique, frac_unique_non_isomorphic, fraction_unique_non_isomorphic_valid = eval_fraction_unique_non_isomorphic_valid(
             networkx_graphs, self.train_graphs, is_sbm_graph)
         frac_non_isomorphic = 1.0 - eval_fraction_isomorphic(networkx_graphs, self.train_graphs)
@@ -815,19 +819,20 @@ class SamplingSpectreMetrics(nn.Module):
                   'sampling/frac_unic_non_iso_valid': fraction_unique_non_isomorphic_valid,
                   'sampling/frac_non_iso': frac_non_isomorphic}
         print("Sampling statistics", to_log)
-        wandb.log(to_log, commit=False)
+        if wandb.run:
+            wandb.log(to_log, commit=False)
 
     def reset(self):
         pass
 
 
 class SpectreSamplingMetrics(nn.Module):
-    def __init__(self, dataloaders, compute_emd, metrics_list):
+    def __init__(self, datamodule, compute_emd, metrics_list):
         super().__init__()
 
-        self.train_graphs = self.loader_to_nx(dataloaders['train'])
-        self.val_graphs = self.loader_to_nx(dataloaders['val'])
-        self.test_graphs = self.loader_to_nx(dataloaders['test'])
+        self.train_graphs = self.loader_to_nx(datamodule.train_dataloader())
+        self.val_graphs = self.loader_to_nx(datamodule.val_dataloader())
+        self.test_graphs = self.loader_to_nx(datamodule.test_dataloader())
         self.num_graphs_test = len(self.test_graphs)
         self.num_graphs_val = len(self.val_graphs)
         self.compute_emd = compute_emd
@@ -843,12 +848,14 @@ class SpectreSamplingMetrics(nn.Module):
                                                    remove_self_loops=True))
         return networkx_graphs
 
-    def forward(self, generated_graphs: list, name, current_epoch, val_counter, save_graphs=True, test=False):
-        print(f"Computing sampling metrics between {len(generated_graphs)} generated graphs and {len(self.test_graphs)}"
-              f" test graphs -- emd computation: {self.compute_emd}")
+    def forward(self, generated_graphs: list, name, current_epoch, val_counter, local_rank, test=False):
+        if local_rank == 0:
+            print(f"Computing sampling metrics between {len(generated_graphs)} generated graphs and {len(self.test_graphs)}"
+                  f" test graphs -- emd computation: {self.compute_emd}")
         networkx_graphs = []
         adjacency_matrices = []
-        print("Building networkx graphs...")
+        if local_rank == 0:
+            print("Building networkx graphs...")
         for graph in generated_graphs:
             node_types, edge_types = graph
             A = edge_types.bool().cpu().numpy()
@@ -857,15 +864,15 @@ class SpectreSamplingMetrics(nn.Module):
             nx_graph = nx.from_numpy_array(A)
             networkx_graphs.append(nx_graph)
 
-
-        print("Saving all adjacency matrices")
         np.savez('generated_adjs.npz', *adjacency_matrices)
 
         if 'degree' in self.metrics_list:
-            print("Computing degree stats..")
+            if local_rank == 0:
+                print("Computing degree stats..")
             degree = degree_stats(self.test_graphs, networkx_graphs, is_parallel=True,
                                   compute_emd=self.compute_emd)
-            wandb.run.summary['degree'] = degree
+            if wandb.run:
+                wandb.run.summary['degree'] = degree
 
         # val_eigvals = [graph["eigval"][1:self.k + 1].cpu().detach().numpy() for graph in self.val]
         # train_eigvals = [graph["eigval"][1:self.k + 1].cpu().detach().numpy() for graph in self.train]
@@ -876,46 +883,60 @@ class SpectreSamplingMetrics(nn.Module):
         to_log = {}
 
         if 'spectre' in self.metrics_list:
-            print("Computing spectre stats...")
+            if local_rank == 0:
+                print("Computing spectre stats...")
             spectre = spectral_stats(self.test_graphs, networkx_graphs, is_parallel=True, n_eigvals=-1,
                                      compute_emd=self.compute_emd)
+
             to_log['spectre'] = spectre
-            wandb.run.summary['spectre'] = spectre
+            if wandb.run:
+              wandb.run.summary['spectre'] = spectre
 
         if 'clustering' in self.metrics_list:
-            print("Computing clustering stats...")
+            if local_rank == 0:
+                print("Computing clustering stats...")
             clustering = clustering_stats(self.test_graphs, networkx_graphs, bins=100, is_parallel=True,
                                           compute_emd=self.compute_emd)
             to_log['clustering'] = clustering
-            wandb.run.summary['clustering'] = clustering
+            if wandb.run:
+                wandb.run.summary['clustering'] = clustering
 
         if 'motif' in self.metrics_list:
-            print("Computing motif stats")
+            if local_rank == 0:
+                print("Computing motif stats")
             motif = motif_stats(self.test_graphs, networkx_graphs, motif_type='4cycle', ground_truth_match=None, bins=100,
                                 compute_emd=self.compute_emd)
             to_log['motif'] = motif
-            wandb.run.summary['motif'] = motif
+            if wandb.run:
+                wandb.run.summary['motif'] = motif
 
         if 'orbit' in self.metrics_list:
-            print("Computing orbit stats...")
+            if local_rank == 0:
+                print("Computing orbit stats...")
             orbit = orbit_stats_all(self.test_graphs, networkx_graphs, compute_emd=self.compute_emd)
             to_log['orbit'] = orbit
-            wandb.run.summary['orbit'] = orbit
+            if wandb.run:
+                wandb.run.summary['orbit'] = orbit
 
         if 'sbm' in self.metrics_list:
-            print("Computing accuracy...")
+            if local_rank == 0:
+                print("Computing accuracy...")
             acc = eval_acc_sbm_graph(networkx_graphs, refinement_steps=100, strict=True)
             to_log['sbm_acc'] = acc
-            wandb.run.summary['sbmacc'] = acc
+            if wandb.run:
+                wandb.run.summary['sbmacc'] = acc
 
         if 'planar' in self.metrics_list:
-            print('Computing planar accuracy...')
+            if local_rank ==0:
+                print('Computing planar accuracy...')
             planar_acc = eval_acc_planar_graph(networkx_graphs)
             to_log['planar_acc'] = planar_acc
-            wandb.run.summary['planar_acc'] = planar_acc
+            if wandb.run:
+                wandb.run.summary['planar_acc'] = planar_acc
 
         if 'sbm' or 'planar' in self.metrics_list:
-            print("Computing all fractions...")
+            if local_rank == 0:
+                print("Computing all fractions...")
             frac_unique, frac_unique_non_isomorphic, fraction_unique_non_isomorphic_valid = eval_fraction_unique_non_isomorphic_valid(
                 networkx_graphs, self.train_graphs, is_sbm_graph if 'sbm' in self.metrics_list else is_planar_graph)
             frac_non_isomorphic = 1.0 - eval_fraction_isomorphic(networkx_graphs, self.train_graphs)
@@ -924,29 +945,31 @@ class SpectreSamplingMetrics(nn.Module):
                            'sampling/frac_unic_non_iso_valid': fraction_unique_non_isomorphic_valid,
                            'sampling/frac_non_iso': frac_non_isomorphic})
 
-        print("Sampling statistics", to_log)
-        wandb.log(to_log, commit=False)
+        if local_rank == 0:
+            print("Sampling statistics", to_log)
+        if wandb.run:
+            wandb.log(to_log, commit=False)
 
     def reset(self):
         pass
 
 
 class Comm20SamplingMetrics(SpectreSamplingMetrics):
-    def __init__(self, dataloaders):
-        super().__init__(dataloaders=dataloaders,
+    def __init__(self, datamodule):
+        super().__init__(datamodule=datamodule,
                          compute_emd=True,
                          metrics_list=['degree', 'clustering', 'orbit'])
 
 
 class PlanarSamplingMetrics(SpectreSamplingMetrics):
-    def __init__(self, dataloaders):
-        super().__init__(dataloaders=dataloaders,
+    def __init__(self, datamodule):
+        super().__init__(datamodule=datamodule,
                          compute_emd=False,
                          metrics_list=['degree', 'clustering', 'orbit', 'spectre', 'planar'])
 
 
 class SBMSamplingMetrics(SpectreSamplingMetrics):
-    def __init__(self, dataloaders):
-        super().__init__(dataloaders=dataloaders,
+    def __init__(self, datamodule):
+        super().__init__(datamodule=datamodule,
                          compute_emd=False,
                          metrics_list=['degree', 'clustering', 'orbit', 'spectre', 'sbm'])

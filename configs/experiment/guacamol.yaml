@@ -13,14 +13,17 @@ general:
     chains_to_save: 5
     log_every_steps: 50
 
-    final_model_samples_to_generate: 18000
-    final_model_samples_to_save: 100
-    final_model_chains_to_save: 50
+#    final_model_samples_to_generate: 18000
+#    final_model_samples_to_save: 100
+#    final_model_chains_to_save: 50
+    final_model_samples_to_generate: 3
+    final_model_samples_to_save: 2
+    final_model_chains_to_save: 1
 
 train:
     optimizer: adam
     n_epochs: 1000
-    batch_size: 256
+    batch_size: 32
     save_model: True
     lr: 2e-4
 model:

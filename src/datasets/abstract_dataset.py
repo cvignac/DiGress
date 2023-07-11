@@ -3,39 +3,26 @@ import src.utils as utils
 import torch
 import pytorch_lightning as pl
 from torch_geometric.loader import DataLoader
+from torch_geometric.data.lightning import LightningDataset
 
 
-class AbstractDataModule(pl.LightningDataModule):
-    def __init__(self, cfg):
-        super().__init__()
+class AbstractDataModule(LightningDataset):
+    def __init__(self, cfg, datasets):
+        super().__init__(train_dataset=datasets['train'], val_dataset=datasets['val'], test_dataset=datasets['test'],
+                         batch_size=cfg.train.batch_size if 'debug' not in cfg.general.name else 2,
+                         num_workers=cfg.train.num_workers,
+                         pin_memory=getattr(cfg.dataset, "pin_memory", False))
         self.cfg = cfg
-        self.dataloaders = None
         self.input_dims = None
         self.output_dims = None
 
-    def prepare_data(self, datasets) -> None:
-        batch_size = self.cfg.train.batch_size
-        num_workers = self.cfg.train.num_workers
-        self.dataloaders = {split: DataLoader(dataset, batch_size=batch_size, num_workers=num_workers,
-                                              shuffle='debug' not in self.cfg.general.name)
-                            for split, dataset in datasets.items()}
-
-    def train_dataloader(self):
-        return self.dataloaders["train"]
-
-    def val_dataloader(self):
-        return self.dataloaders["val"]
-
-    def test_dataloader(self):
-        return self.dataloaders["test"]
-
     def __getitem__(self, idx):
-        return self.dataloaders['train'][idx]
+        return self.train_dataset[idx]
 
     def node_counts(self, max_nodes_possible=300):
         all_counts = torch.zeros(max_nodes_possible)
-        for split in ['train', 'val', 'test']:
-            for i, data in enumerate(self.dataloaders[split]):
+        for loader in [self.train_dataloader(), self.val_dataloader()]:
+            for data in loader:
                 unique, counts = torch.unique(data.batch, return_counts=True)
                 for count in counts:
                     all_counts[count] += 1
@@ -46,13 +33,13 @@ class AbstractDataModule(pl.LightningDataModule):
 
     def node_types(self):
         num_classes = None
-        for data in self.dataloaders['train']:
+        for data in self.train_dataloader():
             num_classes = data.x.shape[1]
             break
 
         counts = torch.zeros(num_classes)
 
-        for i, data in enumerate(self.dataloaders['train']):
+        for i, data in enumerate(self.train_dataloader()):
             counts += data.x.sum(dim=0)
 
         counts = counts / counts.sum()
@@ -60,13 +47,13 @@ class AbstractDataModule(pl.LightningDataModule):
 
     def edge_counts(self):
         num_classes = None
-        for data in self.dataloaders['train']:
+        for data in self.train_dataloader():
             num_classes = data.edge_attr.shape[1]
             break
 
         d = torch.zeros(num_classes, dtype=torch.float)
 
-        for i, data in enumerate(self.dataloaders['train']):
+        for i, data in enumerate(self.train_dataloader()):
             unique, counts = torch.unique(data.batch, return_counts=True)
 
             all_pairs = 0
@@ -92,15 +79,14 @@ class MolecularDataModule(AbstractDataModule):
         # No bond, single bond, double bond, triple bond, aromatic bond
         multiplier = torch.tensor([0, 1, 2, 3, 1.5])
 
-        for split in ['train', 'val', 'test']:
-            for i, data in enumerate(self.dataloaders[split]):
-                n = data.x.shape[0]
+        for data in self.train_dataloader():
+            n = data.x.shape[0]
 
-                for atom in range(n):
-                    edges = data.edge_attr[data.edge_index[0] == atom]
-                    edges_total = edges.sum(dim=0)
-                    valency = (edges_total * multiplier).sum()
-                    valencies[valency.long().item()] += 1
+            for atom in range(n):
+                edges = data.edge_attr[data.edge_index[0] == atom]
+                edges_total = edges.sum(dim=0)
+                valency = (edges_total * multiplier).sum()
+                valencies[valency.long().item()] += 1
         valencies = valencies / valencies.sum()
         return valencies
 

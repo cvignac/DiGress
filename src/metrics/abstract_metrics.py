@@ -14,8 +14,8 @@ class TrainAbstractMetricsDiscrete(torch.nn.Module):
     def reset(self):
         pass
 
-    def log_epoch_metrics(self, current_epoch):
-        pass
+    def log_epoch_metrics(self):
+        return None, None
 
 
 class TrainAbstractMetrics(torch.nn.Module):
@@ -28,8 +28,8 @@ class TrainAbstractMetrics(torch.nn.Module):
     def reset(self):
         pass
 
-    def log_epoch_metrics(self, current_epoch):
-        pass
+    def log_epoch_metrics(self):
+        return None, None
 
 
 class SumExceptBatchMetric(Metric):

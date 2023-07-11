@@ -25,14 +25,14 @@ class TrainMolecularMetrics(nn.Module):
                 to_log['train/' + key] = val.item()
             for key, val in self.train_bond_metrics.compute().items():
                 to_log['train/' + key] = val.item()
-
-            wandb.log(to_log, commit=False)
+            if wandb.run:
+                wandb.log(to_log, commit=False)
 
     def reset(self):
         for metric in [self.train_atom_metrics, self.train_bond_metrics]:
             metric.reset()
 
-    def log_epoch_metrics(self, current_epoch):
+    def log_epoch_metrics(self):
         epoch_atom_metrics = self.train_atom_metrics.compute()
         epoch_bond_metrics = self.train_bond_metrics.compute()
 
@@ -42,14 +42,16 @@ class TrainMolecularMetrics(nn.Module):
         for key, val in epoch_bond_metrics.items():
             to_log['train_epoch/epoch' + key] = val.item()
 
-        wandb.log(to_log, commit=False)
+        if wandb.run:
+            wandb.log(to_log, commit=False)
 
         for key, val in epoch_atom_metrics.items():
             epoch_atom_metrics[key] = f"{val.item() :.3f}"
         for key, val in epoch_bond_metrics.items():
             epoch_bond_metrics[key] = f"{val.item() :.3f}"
 
-        print(f"Epoch {current_epoch}: {epoch_atom_metrics} -- {epoch_bond_metrics}")
+        return epoch_atom_metrics, epoch_bond_metrics
+
 
 
 class SamplingMolecularMetrics(nn.Module):
@@ -85,16 +87,17 @@ class SamplingMolecularMetrics(nn.Module):
         self.train_smiles = train_smiles
         self.dataset_info = di
 
-    def forward(self, molecules: list, name, current_epoch, val_counter, test=False):
+    def forward(self, molecules: list, name, current_epoch, val_counter, local_rank, test=False):
         stability, rdkit_metrics, all_smiles = compute_molecular_metrics(molecules, self.train_smiles, self.dataset_info)
 
-        if test:
+        if test and local_rank == 0:
             with open(r'final_smiles.txt', 'w') as fp:
                 for smiles in all_smiles:
                     # write each item on a new line
                     fp.write("%s\n" % smiles)
                 print('All smiles saved')
 
+        print("Starting custom metrics")
         self.generated_n_dist(molecules)
         generated_n_dist = self.generated_n_dist.compute()
         self.n_dist_mae(generated_n_dist)
@@ -120,7 +123,6 @@ class SamplingMolecularMetrics(nn.Module):
         for j, bond_type in enumerate(['No bond', 'Single', 'Double', 'Triple', 'Aromatic']):
             generated_probability = generated_edge_dist[j]
             target_probability = self.edge_target_dist[j]
-
             to_log[f'molecular_metrics/bond_{bond_type}_dist'] = (generated_probability - target_probability).item()
 
         for valency in range(6):
@@ -128,23 +130,31 @@ class SamplingMolecularMetrics(nn.Module):
             target_probability = self.valency_target_dist[valency]
             to_log[f'molecular_metrics/valency_{valency}_dist'] = (generated_probability - target_probability).item()
 
-        wandb.log(to_log, commit=False)
+        n_mae = self.n_dist_mae.compute()
+        node_mae = self.node_dist_mae.compute()
+        edge_mae = self.edge_dist_mae.compute()
+        valency_mae = self.valency_dist_mae.compute()
 
-        wandb.run.summary['Gen n distribution'] = generated_n_dist
-        wandb.run.summary['Gen node distribution'] = generated_node_dist
-        wandb.run.summary['Gen edge distribution'] = generated_edge_dist
-        wandb.run.summary['Gen valency distribution'] = generated_valency_dist
+        if wandb.run:
+            wandb.log(to_log, commit=False)
+            wandb.run.summary['Gen n distribution'] = generated_n_dist
+            wandb.run.summary['Gen node distribution'] = generated_node_dist
+            wandb.run.summary['Gen edge distribution'] = generated_edge_dist
+            wandb.run.summary['Gen valency distribution'] = generated_valency_dist
 
-        wandb.log({'basic_metrics/n_mae': self.n_dist_mae.compute(),
-                   'basic_metrics/node_mae': self.node_dist_mae.compute(),
-                   'basic_metrics/edge_mae': self.edge_dist_mae.compute(),
-                   'basic_metrics/valency_mae': self.valency_dist_mae.compute()}, commit=False)
+            wandb.log({'basic_metrics/n_mae': n_mae,
+                       'basic_metrics/node_mae': node_mae,
+                       'basic_metrics/edge_mae': edge_mae,
+                       'basic_metrics/valency_mae': valency_mae}, commit=False)
 
-        valid_unique_molecules = rdkit_metrics[1]
-        textfile = open(f'graphs/{name}/valid_unique_molecules_e{current_epoch}_b{val_counter}.txt', "w")
-        textfile.writelines(valid_unique_molecules)
-        textfile.close()
-        print("Stability metrics:", stability, "--", rdkit_metrics[0])
+        if local_rank == 0:
+            print("Custom metrics computed.")
+        if local_rank == 0:
+            valid_unique_molecules = rdkit_metrics[1]
+            textfile = open(f'graphs/{name}/valid_unique_molecules_e{current_epoch}_b{val_counter}.txt', "w")
+            textfile.writelines(valid_unique_molecules)
+            textfile.close()
+            print("Stability metrics:", stability, "--", rdkit_metrics[0])
 
     def reset(self):
         for metric in [self.n_dist_mae, self.node_dist_mae, self.edge_dist_mae, self.valency_dist_mae]:

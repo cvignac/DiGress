@@ -184,7 +184,6 @@ def get_eigenvectors_features(vectors, node_mask, n_connected, k=2):
 
     return not_lcc_indicator, first_k_ev
 
-
 def batch_trace(X):
     """
     Expect a matrix of shape B N N, returns the trace in shape B
@@ -241,7 +240,6 @@ class KNodeCycles:
         prod = 2 * (joint_cycles @ self.d.unsqueeze(-1)).squeeze(-1)
         prod2 = 2 * (self.adj_matrix @ triangles.unsqueeze(-1)).squeeze(-1)
         c5 = diag_a5 - prod - 4 * self.d * triangles - prod2 + 10 * triangles
-
         return (c5 / 2).unsqueeze(-1).float(), (c5.sum(dim=-1) / 10).unsqueeze(-1).float()
 
     def k6_cycle(self):
