@@ -19,7 +19,7 @@ general:
     final_model_chains_to_save: 20
 
 train:
-    optimizer: adamw # adamw,nadamw,nadam,adan => nadamw for large batches, see http://arxiv.org/abs/2102.06356 for the use of nesterov momentum with large batches
+    optimizer: adamw
     n_epochs: 300
     batch_size: 256
     save_model: True

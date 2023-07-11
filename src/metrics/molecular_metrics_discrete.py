@@ -167,14 +167,14 @@ class TrainMolecularMetricsDiscrete(nn.Module):
                 to_log['train/' + key] = val.item()
             for key, val in self.train_bond_metrics.compute().items():
                 to_log['train/' + key] = val.item()
-
-            wandb.log(to_log, commit=False)
+            if wandb.run:
+                wandb.log(to_log, commit=False)
 
     def reset(self):
         for metric in [self.train_atom_metrics, self.train_bond_metrics]:
             metric.reset()
 
-    def log_epoch_metrics(self, current_epoch):
+    def log_epoch_metrics(self):
         epoch_atom_metrics = self.train_atom_metrics.compute()
         epoch_bond_metrics = self.train_bond_metrics.compute()
 
@@ -183,11 +183,13 @@ class TrainMolecularMetricsDiscrete(nn.Module):
             to_log['train_epoch/' + key] = val.item()
         for key, val in epoch_bond_metrics.items():
             to_log['train_epoch/' + key] = val.item()
-        wandb.log(to_log, commit=False)
+        if wandb.run:
+            wandb.log(to_log, commit=False)
 
         for key, val in epoch_atom_metrics.items():
             epoch_atom_metrics[key] = val.item()
         for key, val in epoch_bond_metrics.items():
             epoch_bond_metrics[key] = val.item()
 
-        print(f"Epoch {current_epoch}: {epoch_atom_metrics} -- {epoch_bond_metrics}")
+        return epoch_atom_metrics, epoch_bond_metrics
+

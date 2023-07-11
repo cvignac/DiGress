@@ -1,5 +1,8 @@
 # DiGress: Discrete Denoising diffusion models for graph generation
 
+Update (July 11th, 2023): the code now supports multi-gpu. Please update all libraries according to the instructions. 
+All datasets should now download automatically
+
   - For the conditional generation experiments, check the `guidance` branch.
   - If you are training new models from scratch, we recommand to use the `fixed_bug` branch in which some neural
 network layers have been fixed. The `fixed_bug` branch has not been evaluated, but should normally perform better.
@@ -31,9 +34,7 @@ This code was tested with PyTorch 2.0.1, cuda 11.8 and torch_geometrics 2.3.1
   - Install other packages using the requirement file: 
     
     ```pip install -r requirements.txt```
-  - Install mini-moses: 
-    
-    ```pip install git+https://github.com/igor-krawczuk/mini-moses```
+
   - Run:
     
     ```pip install -e .```
@@ -42,22 +43,7 @@ This code was tested with PyTorch 2.0.1, cuda 11.8 and torch_geometrics 2.3.1
     
      ```g++ -O2 -std=c++11 -o orca orca.cpp```
 
-
-## Download the data
-
-  - QM9 and Guacamol should download by themselves when you run the code.
-  - For the community, SBM and planar datasets, data can be found at https://github.com/KarolisMart/SPECTRE/tree/main/data
-     - For SBM, you can use: `wget https://raw.githubusercontent.com/KarolisMart/SPECTRE/main/data/sbm_200.pt`
-     - For planar, `wget https://raw.githubusercontent.com/KarolisMart/SPECTRE/main/data/planar_64_200.pt`
-    Download the files and simply place them in the `data` folder.
-  - Moses dataset can be found at https://github.com/molecularsets/moses/tree/master/data
-  
-If you want to run Guacamol on the filtered data, either download it from https://drive.switch.ch/index.php/s/pjlZ8A7PADiBGrr
-or follow these instructions:
-  - Set filter_dataset=True in `guacamol_dataset.py`
-  - Run main.py with cfg.dataset.filtered=False
-  - Delete data/guacamol/guacamol_pyg/processed
-  - Run main.py with cfg.dataset.filtered=True
+Note: graph_tool and torch_geometric currently seem to conflict on MacOS, I have not solved this issue yet.
 
 ## Run the code
   

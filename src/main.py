@@ -1,35 +1,23 @@
-# These imports are tricky because they use c++, do not move them
-from rdkit import Chem
-try:
-    import graph_tool
-except ModuleNotFoundError:
-    pass
-
+import graph_tool as gt
 import os
 import pathlib
 import warnings
 
 import torch
-import wandb
+torch.cuda.empty_cache()
 import hydra
-import omegaconf
 from omegaconf import DictConfig
 from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.utilities.warnings import PossibleUserWarning
 
 from src import utils
-from datasets import guacamol_dataset, qm9_dataset, moses_dataset
-from datasets.spectre_dataset import SBMDataModule, Comm20DataModule, PlanarDataModule, SpectreDatasetInfos
 from metrics.abstract_metrics import TrainAbstractMetricsDiscrete, TrainAbstractMetrics
-from analysis.spectre_utils import PlanarSamplingMetrics, SBMSamplingMetrics, Comm20SamplingMetrics
+
 from diffusion_model import LiftedDenoisingDiffusion
 from diffusion_model_discrete import DiscreteDenoisingDiffusion
-from metrics.molecular_metrics import TrainMolecularMetrics, SamplingMolecularMetrics
-from metrics.molecular_metrics_discrete import TrainMolecularMetricsDiscrete
-from analysis.visualization import MolecularVisualization, NonMolecularVisualization
 from diffusion.extra_features import DummyExtraFeatures, ExtraFeatures
-from diffusion.extra_features_molecular import ExtraMolecularFeatures
+
 
 warnings.filterwarnings("ignore", category=PossibleUserWarning)
 
@@ -76,29 +64,23 @@ def get_resume_adaptive(cfg, model_kwargs):
     return new_cfg, model
 
 
-def setup_wandb(cfg):
-    config_dict = omegaconf.OmegaConf.to_container(cfg, resolve=True, throw_on_missing=True)
-    kwargs = {'name': cfg.general.name, 'project': f'graph_ddm_{cfg.dataset.name}', 'config': config_dict,
-              'settings': wandb.Settings(_disable_stats=True), 'reinit': True, 'mode': cfg.general.wandb}
-    wandb.init(**kwargs)
-    wandb.save('*.txt')
-    return cfg
 
-
-@hydra.main(version_base='1.1', config_path='../configs', config_name='config')
+@hydra.main(version_base='1.3', config_path='../configs', config_name='config')
 def main(cfg: DictConfig):
     dataset_config = cfg["dataset"]
 
     if dataset_config["name"] in ['sbm', 'comm-20', 'planar']:
+        from datasets.spectre_dataset import SpectreGraphDataModule, SpectreDatasetInfos
+        from analysis.spectre_utils import PlanarSamplingMetrics, SBMSamplingMetrics, Comm20SamplingMetrics
+        from analysis.visualization import NonMolecularVisualization
+
+        datamodule = SpectreGraphDataModule(cfg)
         if dataset_config['name'] == 'sbm':
-            datamodule = SBMDataModule(cfg)
-            sampling_metrics = SBMSamplingMetrics(datamodule.dataloaders)
+            sampling_metrics = SBMSamplingMetrics(datamodule)
         elif dataset_config['name'] == 'comm-20':
-            datamodule = Comm20DataModule(cfg)
-            sampling_metrics = Comm20SamplingMetrics(datamodule.dataloaders)
+            sampling_metrics = Comm20SamplingMetrics(datamodule)
         else:
-            datamodule = PlanarDataModule(cfg)
-            sampling_metrics = PlanarSamplingMetrics(datamodule.dataloaders)
+            sampling_metrics = PlanarSamplingMetrics(datamodule)
 
         dataset_infos = SpectreDatasetInfos(datamodule, dataset_config)
         train_metrics = TrainAbstractMetricsDiscrete() if cfg.model.type == 'discrete' else TrainAbstractMetrics()
@@ -118,22 +100,27 @@ def main(cfg: DictConfig):
                         'extra_features': extra_features, 'domain_features': domain_features}
 
     elif dataset_config["name"] in ['qm9', 'guacamol', 'moses']:
+        from metrics.molecular_metrics import TrainMolecularMetrics, SamplingMolecularMetrics
+        from metrics.molecular_metrics_discrete import TrainMolecularMetricsDiscrete
+        from diffusion.extra_features_molecular import ExtraMolecularFeatures
+        from analysis.visualization import MolecularVisualization
+
         if dataset_config["name"] == 'qm9':
+            from datasets import qm9_dataset
             datamodule = qm9_dataset.QM9DataModule(cfg)
             dataset_infos = qm9_dataset.QM9infos(datamodule=datamodule, cfg=cfg)
-            datamodule.prepare_data()
             train_smiles = qm9_dataset.get_train_smiles(cfg=cfg, train_dataloader=datamodule.train_dataloader(),
                                                         dataset_infos=dataset_infos, evaluate_dataset=False)
         elif dataset_config['name'] == 'guacamol':
+            from datasets import guacamol_dataset
             datamodule = guacamol_dataset.GuacamolDataModule(cfg)
             dataset_infos = guacamol_dataset.Guacamolinfos(datamodule, cfg)
-            datamodule.prepare_data()
             train_smiles = None
 
         elif dataset_config.name == 'moses':
-            datamodule = moses_dataset.MOSESDataModule(cfg)
+            from datasets import moses_dataset
+            datamodule = moses_dataset.MosesDataModule(cfg)
             dataset_infos = moses_dataset.MOSESinfos(datamodule, cfg)
-            datamodule.prepare_data()
             train_smiles = None
         else:
             raise ValueError("Dataset not implemented")
@@ -173,7 +160,6 @@ def main(cfg: DictConfig):
         os.chdir(cfg.general.resume.split('checkpoints')[0])
 
     utils.create_folders(cfg)
-    cfg = setup_wandb(cfg)
 
     if cfg.model.type == 'discrete':
         model = DiscreteDenoisingDiffusion(cfg=cfg, **model_kwargs)
@@ -197,24 +183,21 @@ def main(cfg: DictConfig):
         callbacks.append(ema_callback)
 
     name = cfg.general.name
-    if name == 'test':
-        print("[WARNING]: Run is called 'test' -- it will run in debug mode on 20 batches. ")
-    elif name == 'debug':
+    if name == 'debug':
         print("[WARNING]: Run is called 'debug' -- it will run with fast_dev_run. ")
+
+    use_gpu = cfg.general.gpus > 0 and torch.cuda.is_available()
     trainer = Trainer(gradient_clip_val=cfg.train.clip_grad,
-                      accelerator='gpu' if torch.cuda.is_available() and cfg.general.gpus > 0 else 'cpu',
-                      devices=cfg.general.gpus if torch.cuda.is_available() and cfg.general.gpus > 0 else None,
-                      limit_train_batches=20 if name == 'test' else None,
-                      limit_val_batches=20 if name == 'test' else None,
-                      limit_test_batches=20 if name == 'test' else None,
-                      val_check_interval=cfg.general.val_check_interval,
+                      strategy="ddp_find_unused_parameters_true",  # Needed to load old checkpoints
+                      accelerator='gpu' if use_gpu else 'cpu',
+                      devices=cfg.general.gpus if use_gpu else 1,
                       max_epochs=cfg.train.n_epochs,
                       check_val_every_n_epoch=cfg.general.check_val_every_n_epochs,
                       fast_dev_run=cfg.general.name == 'debug',
-                      strategy='ddp' if cfg.general.gpus > 1 else None,
                       enable_progress_bar=False,
                       callbacks=callbacks,
-                      logger=[])
+                      log_every_n_steps=50 if name != 'debug' else 1,
+                      logger = [])
 
     if not cfg.general.test_only:
         trainer.fit(model, datamodule=datamodule, ckpt_path=cfg.general.resume)
@@ -233,7 +216,6 @@ def main(cfg: DictConfig):
                     if ckpt_path == cfg.general.test_only:
                         continue
                     print("Loading checkpoint", ckpt_path)
-                    setup_wandb(cfg)
                     trainer.test(model, datamodule=datamodule, ckpt_path=ckpt_path)
 
 

@@ -194,11 +194,9 @@ class QM9Dataset(InMemoryDataset):
 class QM9DataModule(MolecularDataModule):
     def __init__(self, cfg):
         self.datadir = cfg.dataset.datadir
-        super().__init__(cfg)
         self.remove_h = cfg.dataset.remove_h
 
-    def prepare_data(self) -> None:
-        target = getattr(self.cfg.general, 'guidance_target', None)
+        target = getattr(cfg.general, 'guidance_target', None)
         regressor = getattr(self, 'regressor', None)
         if regressor and target == 'mu':
             transform = SelectMuTransform()
@@ -211,14 +209,13 @@ class QM9DataModule(MolecularDataModule):
 
         base_path = pathlib.Path(os.path.realpath(__file__)).parents[2]
         root_path = os.path.join(base_path, self.datadir)
-        datasets = {'train': QM9Dataset(stage='train', root=root_path, remove_h=self.cfg.dataset.remove_h,
+        datasets = {'train': QM9Dataset(stage='train', root=root_path, remove_h=cfg.dataset.remove_h,
                                         target_prop=target, transform=RemoveYTransform()),
-                    'val': QM9Dataset(stage='val', root=root_path, remove_h=self.cfg.dataset.remove_h,
+                    'val': QM9Dataset(stage='val', root=root_path, remove_h=cfg.dataset.remove_h,
                                       target_prop=target, transform=RemoveYTransform()),
-                    'test': QM9Dataset(stage='test', root=root_path, remove_h=self.cfg.dataset.remove_h,
+                    'test': QM9Dataset(stage='test', root=root_path, remove_h=cfg.dataset.remove_h,
                                        target_prop=target, transform=transform)}
-        super().prepare_data(datasets)
-
+        super().__init__(cfg, datasets)
 
 
 class QM9infos(AbstractDatasetInfos):

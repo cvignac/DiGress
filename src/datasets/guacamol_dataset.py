@@ -60,9 +60,9 @@ class GuacamolDataset(InMemoryDataset):
     valid_url = 'https://figshare.com/ndownloader/files/13612766'
     all_url = 'https://figshare.com/ndownloader/files/13612745'
 
-    def __init__(self, stage, root, filtered: bool, transform=None, pre_transform=None, pre_filter=None):
+    def __init__(self, stage, root, filter_dataset: bool, transform=None, pre_transform=None, pre_filter=None):
         self.stage = stage
-        self.filtered = filtered
+        self.filter_dataset = filter
         if self.stage == 'train':
             self.file_idx = 0
         elif self.stage == 'val':
@@ -74,17 +74,11 @@ class GuacamolDataset(InMemoryDataset):
 
     @property
     def raw_file_names(self):
-        if self.filtered:
-            return ['new_train.smiles', 'new_val.smiles', 'new_test.smiles']
-        else:
-            return ['guacamol_v1_train.smiles', 'guacamol_v1_valid.smiles', 'guacamol_v1_test.smiles']
+        return ['guacamol_v1_train.smiles', 'guacamol_v1_valid.smiles', 'guacamol_v1_test.smiles']
 
     @property
     def split_file_name(self):
-        if self.filtered:
-            return ['new_train.smiles', 'new_val.smiles', 'new_test.smiles']
-        else:
-            return ['guacamol_v1_train.smiles', 'guacamol_v1_valid.smiles', 'guacamol_v1_test.smiles']
+        return ['guacamol_v1_train.smiles', 'guacamol_v1_valid.smiles', 'guacamol_v1_test.smiles']
 
     @property
     def split_paths(self):
@@ -95,30 +89,24 @@ class GuacamolDataset(InMemoryDataset):
 
     @property
     def processed_file_names(self):
-            if self.filtered:
-                return ['new_proc_tr.pt', 'new_proc_val.pt', 'new_proc_test.pt']
-            else:
-                return ['old_proc_tr.pt', 'old_proc_val.pt', 'old_proc_test.pt']
+        if self.filter:
+            return ['new_proc_tr.pt', 'new_proc_val.pt', 'new_proc_test.pt']
+        else:
+            return ['old_proc_tr.pt', 'old_proc_val.pt', 'old_proc_test.pt']
 
     def download(self):
-        """
-        Download raw qm9 files. Taken from PyG QM9 class
-        """
-        try:
-            import rdkit  # noqa
-            train_path = download_url(self.train_url, self.raw_dir)
-            os.rename(train_path, osp.join(self.raw_dir, 'guacamol_v1_train.smiles'))
-            train_path = osp.join(self.raw_dir, 'guacamol_v1_train.smiles')
+        import rdkit  # noqa
+        train_path = download_url(self.train_url, self.raw_dir)
+        os.rename(train_path, osp.join(self.raw_dir, 'guacamol_v1_train.smiles'))
+        train_path = osp.join(self.raw_dir, 'guacamol_v1_train.smiles')
 
-            test_path = download_url(self.test_url, self.raw_dir)
-            os.rename(test_path, osp.join(self.raw_dir, 'guacamol_v1_test.smiles'))
-            test_path = osp.join(self.raw_dir, 'guacamol_v1_test.smiles')
+        test_path = download_url(self.test_url, self.raw_dir)
+        os.rename(test_path, osp.join(self.raw_dir, 'guacamol_v1_test.smiles'))
+        test_path = osp.join(self.raw_dir, 'guacamol_v1_test.smiles')
 
-            valid_path = download_url(self.valid_url, self.raw_dir)
-            os.rename(valid_path, osp.join(self.raw_dir, 'guacamol_v1_valid.smiles'))
-            valid_path = osp.join(self.raw_dir, 'guacamol_v1_valid.smiles')
-        except ImportError:
-            path = download_url(self.processed_url, self.raw_dir)
+        valid_path = download_url(self.valid_url, self.raw_dir)
+        os.rename(valid_path, osp.join(self.raw_dir, 'guacamol_v1_valid.smiles'))
+        valid_path = osp.join(self.raw_dir, 'guacamol_v1_valid.smiles')
 
         # check the hashes
         # Check whether the md5-hashes of the generated smiles files match
@@ -138,7 +126,6 @@ class GuacamolDataset(InMemoryDataset):
             return
 
     def process(self):
-
         RDLogger.DisableLog('rdApp.*')
         types = {'C': 0, 'N': 1, 'O': 2, 'F': 3, 'B': 4, 'Br': 5, 'Cl': 6, 'I': 7, 'P': 8, 'S': 9, 'Se': 10, 'Si': 11}
         bonds = {BT.SINGLE: 0, BT.DOUBLE: 1, BT.TRIPLE: 2, BT.AROMATIC: 3}
@@ -178,14 +165,7 @@ class GuacamolDataset(InMemoryDataset):
 
             data = Data(x=x, edge_index=edge_index, edge_attr=edge_attr, y=y, idx=i)
 
-            if not filter_dataset:
-                if self.pre_filter is not None and not self.pre_filter(data):
-                    continue
-                if self.pre_transform is not None:
-                    data = self.pre_transform(data)
-                data_list.append(data)
-                continue
-            else:
+            if filter_dataset:
                 # Try to build the molecule again from the graph. If it fails, do not add it to the training set
                 dense_data, node_mask = utils.to_dense(data.x, data.edge_index, data.edge_attr, data.batch)
                 dense_data = dense_data.mask(node_mask, collapse=True)
@@ -200,40 +180,44 @@ class GuacamolDataset(InMemoryDataset):
                 if smiles is not None:
                     try:
                         mol_frags = Chem.rdmolops.GetMolFrags(mol, asMols=True, sanitizeFrags=True)
-                        largest_mol = max(mol_frags, default=mol, key=lambda m: m.GetNumAtoms())
-                        smiles = mol2smiles(largest_mol)
-                        smiles_kept.append(smiles)
+                        if len(mol_frags) == 1:
+                            data_list.append(data)
+                            smiles_kept.append(smiles)
+
                     except Chem.rdchem.AtomValenceException:
                         print("Valence error in GetmolFrags")
                     except Chem.rdchem.KekulizeException:
                         print("Can't kekulize molecule")
+            else:
+                if self.pre_filter is not None and not self.pre_filter(data):
+                    continue
+                if self.pre_transform is not None:
+                    data = self.pre_transform(data)
+                data_list.append(data)
 
+        torch.save(self.collate(data_list), self.processed_paths[self.file_idx])
         if filter_dataset:
             smiles_save_path = osp.join(pathlib.Path(self.raw_paths[0]).parent, f'new_{self.stage}.smiles')
             print(smiles_save_path)
             with open(smiles_save_path, 'w') as f:
                 f.writelines('%s\n' % s for s in smiles_kept)
             print(f"Number of molecules kept: {len(smiles_kept)} / {len(smile_list)}")
-        else:
-            torch.save(self.collate(data_list), self.processed_paths[self.file_idx])
+
 
 
 class GuacamolDataModule(MolecularDataModule):
     def __init__(self, cfg):
-        super().__init__(cfg)
+
         self.remove_h = True
         self.datadir = cfg.dataset.datadir
-        self.filtered = cfg.dataset.filtered
+        self.filter = cfg.dataset.filter
         self.train_smiles = []
-        self.prepare_data()
-
-    def prepare_data(self) -> None:
         base_path = pathlib.Path(os.path.realpath(__file__)).parents[2]
         root_path = os.path.join(base_path, self.datadir)
-        datasets = {'train': GuacamolDataset(stage='train', root=root_path, filtered=self.filtered),
-                    'val': GuacamolDataset(stage='val', root=root_path, filtered=self.filtered),
-                    'test': GuacamolDataset(stage='test', root=root_path, filtered=self.filtered)}
-        super().prepare_data(datasets)
+        datasets = {'train': GuacamolDataset(stage='train', root=root_path, filter=self.filter),
+                    'val': GuacamolDataset(stage='val', root=root_path, filter=self.filter),
+                    'test': GuacamolDataset(stage='test', root=root_path, filter=self.filter)}
+        super().__init__(cfg, datasets)
 
 
 class Guacamolinfos(AbstractDatasetInfos):
@@ -299,32 +283,3 @@ class Guacamolinfos(AbstractDatasetInfos):
             self.valency_distribution = valencies
 
 
-def get_train_smiles(cfg, datamodule, dataset_infos, evaluate_dataset=False):
-    base_path = pathlib.Path(os.path.realpath(__file__)).parents[2]
-    smiles_path = os.path.join(base_path, cfg.dataset.datadir)
-
-    train_smiles = None
-    if os.path.exists(smiles_path):
-        print("Dataset smiles were found.")
-        train_smiles = np.array(open(smiles_path).readlines())
-
-    if evaluate_dataset:
-        train_dataloader = datamodule.dataloaders['train']
-        all_molecules = []
-        for i, data in enumerate(tqdm(train_dataloader)):
-            dense_data, node_mask = utils.to_dense(data.x, data.edge_index, data.edge_attr, data.batch)
-            dense_data = dense_data.mask(node_mask, collapse=True)
-            X, E = dense_data.X, dense_data.E
-
-            for k in range(X.size(0)):
-                n = int(torch.sum((X != -1)[k, :]))
-                atom_types = X[k, :n].cpu()
-                edge_types = E[k, :n, :n].cpu()
-                all_molecules.append([atom_types, edge_types])
-        # all_molecules = all_molecules[:10]
-        print("Evaluating the dataset -- number of molecules to evaluate", len(all_molecules))
-        metrics = compute_molecular_metrics(molecule_list=all_molecules, train_smiles=train_smiles,
-                                            dataset_info=dataset_infos)
-        print(metrics[0])
-
-    return train_smiles
