@@ -14,3 +14,5 @@ model:
     lambda_train: [5, 0]
 dataset:
     remove_h: True
+    pin_memory: True
+    num_workers: 16
