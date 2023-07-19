@@ -17,11 +17,6 @@ from src import utils
 from src.analysis.rdkit_functions import mol2smiles, build_molecule_with_partial_charges, compute_molecular_metrics
 from src.datasets.abstract_dataset import AbstractDatasetInfos, MolecularDataModule
 
-# If you want to filter the dataset, set this flag to True, then run main.py with cfg.dataset.filtered=False
-# Then delete data/guacamol/guacamol_pyg/processed
-# Then run main.py with cfg.dataset.filtered=True
-filter_dataset = False
-
 
 TRAIN_HASH = '05ad85d871958a05c02ab51a4fde8530'
 VALID_HASH = 'e53db4bff7dc4784123ae6df72e3b1f0'
@@ -62,7 +57,7 @@ class GuacamolDataset(InMemoryDataset):
 
     def __init__(self, stage, root, filter_dataset: bool, transform=None, pre_transform=None, pre_filter=None):
         self.stage = stage
-        self.filter_dataset = filter
+        self.filter_dataset = filter_dataset
         if self.stage == 'train':
             self.file_idx = 0
         elif self.stage == 'val':
@@ -165,7 +160,7 @@ class GuacamolDataset(InMemoryDataset):
 
             data = Data(x=x, edge_index=edge_index, edge_attr=edge_attr, y=y, idx=i)
 
-            if filter_dataset:
+            if self.filter_dataset:
                 # Try to build the molecule again from the graph. If it fails, do not add it to the training set
                 dense_data, node_mask = utils.to_dense(data.x, data.edge_index, data.edge_attr, data.batch)
                 dense_data = dense_data.mask(node_mask, collapse=True)
@@ -196,7 +191,7 @@ class GuacamolDataset(InMemoryDataset):
                 data_list.append(data)
 
         torch.save(self.collate(data_list), self.processed_paths[self.file_idx])
-        if filter_dataset:
+        if self.filter_dataset:
             smiles_save_path = osp.join(pathlib.Path(self.raw_paths[0]).parent, f'new_{self.stage}.smiles')
             print(smiles_save_path)
             with open(smiles_save_path, 'w') as f:
@@ -214,9 +209,9 @@ class GuacamolDataModule(MolecularDataModule):
         self.train_smiles = []
         base_path = pathlib.Path(os.path.realpath(__file__)).parents[2]
         root_path = os.path.join(base_path, self.datadir)
-        datasets = {'train': GuacamolDataset(stage='train', root=root_path, filter=self.filter),
-                    'val': GuacamolDataset(stage='val', root=root_path, filter=self.filter),
-                    'test': GuacamolDataset(stage='test', root=root_path, filter=self.filter)}
+        datasets = {'train': GuacamolDataset(stage='train', root=root_path, filter_dataset=self.filter),
+                    'val': GuacamolDataset(stage='val', root=root_path, filter_dataset=self.filter),
+                    'test': GuacamolDataset(stage='test', root=root_path, filter_dataset=self.filter)}
         super().__init__(cfg, datasets)
 
 
