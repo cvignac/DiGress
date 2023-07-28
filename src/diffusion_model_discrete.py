@@ -143,7 +143,6 @@ class DiscreteDenoisingDiffusion(pl.LightningModule):
                       f" -- {time.time() - self.start_epoch_time:.1f}s ")
         epoch_at_metrics, epoch_bond_metrics = self.train_metrics.log_epoch_metrics()
         self.print(f"Epoch {self.current_epoch}: {epoch_at_metrics} -- {epoch_bond_metrics}")
-        print(torch.cuda.memory_summary())
 
     def on_validation_epoch_start(self) -> None:
         self.val_nll.reset()
@@ -404,7 +403,6 @@ class DiscreteDenoisingDiffusion(pl.LightningModule):
         """ Sample noise and apply it to the data. """
 
         # Sample a timestep t.
-        # When evaluating, the loss for t=0 is computed separately
         lowest_t = 1
         t_int = torch.randint(lowest_t, self.T + 1, size=(X.size(0), 1), device=X.device).float()  # (bs, 1)
         s_int = t_int - 1
