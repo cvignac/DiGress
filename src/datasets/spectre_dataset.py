@@ -56,6 +56,7 @@ class SpectreGraphDataset(InMemoryDataset):
         val_indices = indices[train_len:train_len + val_len]
         test_indices = indices[train_len + val_len:]
 
+
         train_data = []
         val_data = []
         test_data = []

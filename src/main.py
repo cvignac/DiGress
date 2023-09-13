@@ -1,4 +1,7 @@
-import graph_tool as gt
+try:
+    import graph_tool as gt
+except ModuleNotFoundError:
+    print("Graph tool not found")
 import os
 import pathlib
 import warnings

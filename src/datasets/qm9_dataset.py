@@ -278,7 +278,6 @@ class QM9infos(AbstractDatasetInfos):
             print("Distribution of the valencies", valencies)
             np.savetxt('valencies.txt', valencies.numpy())
             self.valency_distribution = valencies
-            assert False
 
 
 def get_train_smiles(cfg, train_dataloader, dataset_infos, evaluate_dataset=False):
