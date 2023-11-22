@@ -1,5 +1,7 @@
 # DiGress: Discrete Denoising diffusion models for graph generation
 
+Update (Nov 20th, 2023): Working with large graphs (more than 100-200 nodes)? Consider using SparseDiff, a sparse version of DiGress: https://github.com/qym7/SparseDiff
+
 Update (July 11th, 2023): the code now supports multi-gpu. Please update all libraries according to the instructions. 
 All datasets should now download automatically
 
