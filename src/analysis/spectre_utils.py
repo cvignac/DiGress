@@ -731,7 +731,6 @@ def eval_fraction_unique_non_isomorphic_valid(fake_graphs, train_graphs, validit
         len(fake_graphs))  # Fraction of distinct isomorphism classes in the fake graphs that are not in the training set and are valid
     return frac_unique, frac_unique_non_isomorphic, frac_unique_non_isomorphic_valid
 
-Z
 class SpectreSamplingMetrics(nn.Module):
     def __init__(self, datamodule, compute_emd, metrics_list):
         super().__init__()
