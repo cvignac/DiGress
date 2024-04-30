@@ -84,7 +84,7 @@ class GuacamolDataset(InMemoryDataset):
 
     @property
     def processed_file_names(self):
-        if self.filter:
+        if self.filter_dataset:
             return ['new_proc_tr.pt', 'new_proc_val.pt', 'new_proc_test.pt']
         else:
             return ['old_proc_tr.pt', 'old_proc_val.pt', 'old_proc_test.pt']
