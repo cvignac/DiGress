@@ -72,7 +72,7 @@ def get_resume_adaptive(cfg, model_kwargs):
 def main(cfg: DictConfig):
     dataset_config = cfg["dataset"]
 
-    if dataset_config["name"] in ['sbm', 'comm-20', 'planar']:
+    if dataset_config["name"] in ['sbm', 'comm20', 'planar']:
         from datasets.spectre_dataset import SpectreGraphDataModule, SpectreDatasetInfos
         from analysis.spectre_utils import PlanarSamplingMetrics, SBMSamplingMetrics, Comm20SamplingMetrics
         from analysis.visualization import NonMolecularVisualization
@@ -80,7 +80,7 @@ def main(cfg: DictConfig):
         datamodule = SpectreGraphDataModule(cfg)
         if dataset_config['name'] == 'sbm':
             sampling_metrics = SBMSamplingMetrics(datamodule)
-        elif dataset_config['name'] == 'comm-20':
+        elif dataset_config['name'] == 'comm20':
             sampling_metrics = Comm20SamplingMetrics(datamodule)
         else:
             sampling_metrics = PlanarSamplingMetrics(datamodule)
