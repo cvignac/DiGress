@@ -64,10 +64,9 @@ of datasets that are currently available
 
 The following checkpoints should work with the latest commit:
 
-  - Planar: ~~https://drive.switch.ch/index.php/s/hRWLp8gOGOGFzgR~~ \\
-    Performance of this checkpoint: 
-    - Test NLL: 1135.6080 
-    - `{'spectre': 0.006211824145982536, 'clustering': 0.0563302653184386, 'orbit': 0.00980205113753696, 'planar_acc': 0.85, 'sampling/frac_unique': 1.0, 'sampling/frac_unique_non_iso': 1.0, 'sampling/frac_unic_non_iso_valid': 0.85, 'sampling/frac_non_iso': 1.0} `
+  - QM9 (heavy atoms only): https://drive.switch.ch/index.php/s/8IhyGE4giIW1wV3/download?path=%2F&files=planar.ckpt \\
+  
+  - Planar: https://drive.switch.ch/index.php/s/8IhyGE4giIW1wV3/download?path=%2F&files=planar.ckpt \\
 
   - MOSES (the model in the paper was trained a bit longer than this one): ~~https://drive.switch.ch/index.php/s/DBbvfMmezjg6KUm~~ \\
     Performance of this checkpoint:
