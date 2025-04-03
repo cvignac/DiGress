@@ -64,9 +64,9 @@ of datasets that are currently available
 
 The following checkpoints should work with the latest commit:
 
-  - QM9 (heavy atoms only): https://drive.switch.ch/index.php/s/8IhyGE4giIW1wV3/download?path=%2F&files=planar.ckpt \\
+  - [QM9 (heavy atoms only)](https://drive.switch.ch/index.php/s/8IhyGE4giIW1wV3) \\
   
-  - Planar: https://drive.switch.ch/index.php/s/8IhyGE4giIW1wV3/download?path=%2F&files=planar.ckpt \\
+  - [Planar](https://drive.switch.ch/index.php/s/8IhyGE4giIW1wV3) \\
 
   - MOSES (the model in the paper was trained a bit longer than this one): https://drive.google.com/file/d/1LUVzdZQRwyZWWHJFKLsovG9jqkehcHYq/view?usp=sharing -- This checkpoint has been sent to me, but I have not tested it. \\
 
