@@ -13,7 +13,7 @@ general:
     log_every_steps: 50
     number_chain_steps: 50        # Number of frames in each gif
     final_model_samples_to_generate: 20
-    final_model_samples_to_save:
+    final_model_samples_to_save: 20
     final_model_chains_to_save: 10
 
 train:

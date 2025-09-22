@@ -772,11 +772,15 @@ class SpectreSamplingMetrics(nn.Module):
 
         np.savez('generated_adjs.npz', *adjacency_matrices)
 
+        to_log = {}
+
         if 'degree' in self.metrics_list:
             if local_rank == 0:
                 print("Computing degree stats..")
             degree = degree_stats(reference_graphs, networkx_graphs, is_parallel=True,
                                   compute_emd=self.compute_emd)
+
+            to_log['degree'] = degree
             if wandb.run:
                 wandb.run.summary['degree'] = degree
 
@@ -786,8 +790,6 @@ class SpectreSamplingMetrics(nn.Module):
         # eigval_stats(eig_ref_list, eig_pred_list, max_eig=20, is_parallel=True, compute_emd=False)
         # spectral_filter_stats(eigvec_ref_list, eigval_ref_list, eigvec_pred_list, eigval_pred_list, is_parallel=False,
         #                       compute_emd=False)          # This is the one called wavelet
-        to_log = {}
-
         if 'spectre' in self.metrics_list:
             if local_rank == 0:
                 print("Computing spectre stats...")
@@ -796,7 +798,7 @@ class SpectreSamplingMetrics(nn.Module):
 
             to_log['spectre'] = spectre
             if wandb.run:
-              wandb.run.summary['spectre'] = spectre
+                wandb.run.summary['spectre'] = spectre
 
         if 'clustering' in self.metrics_list:
             if local_rank == 0:

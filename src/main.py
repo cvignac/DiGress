@@ -23,45 +23,10 @@ warnings.filterwarnings("ignore", category=PossibleUserWarning)
 
 
 def get_resume(cfg, model_kwargs):
-    """ Resumes a run. It loads previous config without allowing to update keys (used for testing). """
-    saved_cfg = cfg.copy()
-    name = cfg.general.name + '_resume'
-    resume = cfg.general.test_only
-    if cfg.model.type == 'discrete':
-        model = DiscreteDenoisingDiffusion.load_from_checkpoint(resume, **model_kwargs)
-    else:
-        model = LiftedDenoisingDiffusion.load_from_checkpoint(resume, **model_kwargs)
-    cfg = model.cfg
-    cfg.general.test_only = resume
-    cfg.general.name = name
-    cfg = utils.update_config_with_new_keys(cfg, saved_cfg)
-    return cfg, model
-
-
-def get_resume_adaptive(cfg, model_kwargs):
-    """ Resumes a run. It loads previous config but allows to make some changes (used for resuming training)."""
-    saved_cfg = cfg.copy()
-    # Fetch path to this file to get base path
-    current_path = os.path.dirname(os.path.realpath(__file__))
-    root_dir = current_path.split('outputs')[0]
-
-    resume_path = os.path.join(root_dir, cfg.general.resume)
-
-    if cfg.model.type == 'discrete':
-        model = DiscreteDenoisingDiffusion.load_from_checkpoint(resume_path, **model_kwargs)
-    else:
-        model = LiftedDenoisingDiffusion.load_from_checkpoint(resume_path, **model_kwargs)
-    new_cfg = model.cfg
-
-    for category in cfg:
-        for arg in cfg[category]:
-            new_cfg[category][arg] = cfg[category][arg]
-
-    new_cfg.general.resume = resume_path
-    new_cfg.general.name = new_cfg.general.name + '_resume'
-
-    new_cfg = utils.update_config_with_new_keys(new_cfg, saved_cfg)
-    return new_cfg, model
+    """ Resumes a run from current config (assume the core configs like model arch keep the same). """
+    cfg.general.name += "_resume"
+    model_class = DiscreteDenoisingDiffusion if cfg.model.type == 'discrete' else LiftedDenoisingDiffusion
+    return cfg, model_class(cfg, **model_kwargs)
 
 
 
@@ -150,21 +115,16 @@ def main(cfg: DictConfig):
     else:
         raise NotImplementedError("Unknown dataset {}".format(cfg["dataset"]))
 
-    if cfg.general.test_only:
-        # When testing, previous configuration is fully loaded
-        cfg, _ = get_resume(cfg, model_kwargs)
-        os.chdir(cfg.general.test_only.split('checkpoints')[0])
-    elif cfg.general.resume is not None:
-        # When resuming, we can override some parts of previous configuration
-        cfg, _ = get_resume_adaptive(cfg, model_kwargs)
-        os.chdir(cfg.general.resume.split('checkpoints')[0])
+    current_ckpt = cfg.general.test_only or cfg.general.resume
+    if current_ckpt:
+        cfg, model = get_resume(cfg, model_kwargs)
+        ckpt_dir = current_ckpt.split('checkpoints')[0]
+        os.chdir(ckpt_dir)
+    else:
+        model_class = DiscreteDenoisingDiffusion if cfg.model.type == 'discrete' else LiftedDenoisingDiffusion
+        model = model_class(cfg=cfg, **model_kwargs)
 
     utils.create_folders(cfg)
-
-    if cfg.model.type == 'discrete':
-        model = DiscreteDenoisingDiffusion(cfg=cfg, **model_kwargs)
-    else:
-        model = LiftedDenoisingDiffusion(cfg=cfg, **model_kwargs)
 
     callbacks = []
     if cfg.train.save_model:
@@ -188,7 +148,7 @@ def main(cfg: DictConfig):
 
     use_gpu = cfg.general.gpus > 0 and torch.cuda.is_available()
     trainer = Trainer(gradient_clip_val=cfg.train.clip_grad,
-                      strategy="ddp_find_unused_parameters_true",  # Needed to load old checkpoints
+                    #   strategy="ddp" if cfg.general.gpus > 1 else "auto",
                       accelerator='gpu' if use_gpu else 'cpu',
                       devices=cfg.general.gpus if use_gpu else 1,
                       max_epochs=cfg.train.n_epochs,
