@@ -153,3 +153,6 @@ ggg_utils/
 saved_models
 src/analysis/orca/orca
 src/analysis/orca/tmp*
+sync.sh
+.vscode
+venv
